@@ -1,0 +1,5 @@
+.venv/
+.vscode/
+
+*.egg-info/
+pip-wheel-metadata/
