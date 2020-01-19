@@ -1,5 +1,11 @@
 .venv/
 .vscode/
 
-*.egg-info/
+# Python Stuff
+.egg-info/
 pip-wheel-metadata/
+__pycache__/
+*.pyc
+
+# Pytest Stuff
+.pytest_cache/
