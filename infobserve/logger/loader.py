@@ -5,7 +5,7 @@ loggers used in the application.
 """
 
 import logging
-from infobserve import CONFIG
+from infobserve.config import CONFIG
 
 
 class Loader():
@@ -24,10 +24,15 @@ class Loader():
         in an attribute APP_LOGGER
         """
 
-        self.APP_LOGGER = logging.getLogger("infobserver")
-        self.APP_LOGGER.setLevel(CONFIG.LOGGING_LEVEL)
+        self.logger = logging.getLogger("infobserver")
+        self.logger.setLevel(CONFIG.LOGGING_LEVEL)
 
         formatter = logging.Formatter('%(asctime)s-%(name)s-%(levelname)s: %(message)s')
         consoleHandler = logging.StreamHandler()
         consoleHandler.setLevel(CONFIG.LOGGING_LEVEL)
         consoleHandler.setFormatter(formatter)
+        self.logger.addHandler(consoleHandler)
+
+    def get_logger(self):
+        """Returns the application logger."""
+        return self.logger
