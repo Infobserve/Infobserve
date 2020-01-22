@@ -24,13 +24,18 @@ class Loader():
             config_file (str): The path of the configuration yaml.
 
         """
-        yaml_file = yaml.load(config_file, Loader=yaml.FullLoader)
+        try:
+            with open(config_file) as file:
+                yaml_file = yaml.load(file, Loader=yaml.FullLoader)
+
+        except FileNotFoundError:
+            yaml_file = dict()
 
         self.GLOBAL_SCRAPE_INTERVAL = yaml_file.get("global_scrape_interval", 60)  # In Seconds
         self.YARA_RULES_PATHS = yaml_file.get("yara_rules_paths", "yara/*.yar")
         self.YARA_EXTERNAL_VARS = yaml_file.get("yara_external_vars", None)
         self.PROCESSING_QUEUE_SIZE = yaml_file.get("processing_queue_size", 0)
-        self.LOGGING_LEVEL = yaml_file.get("log_level", "INFO")
+        self.LOGGING_LEVEL = yaml_file.get("log_level", "DEBUG")
 
         # Think of a way to express this in more elegant and dynamic fashion
         # Factory Pattern for the Sources for easy extendability.
@@ -41,5 +46,3 @@ class Loader():
                 self.SOURCE_GIST_CONF = sources_dict["gist"]
             else:
                 self.SOURCE_GIST_CONF = None
-        else:
-            exit("You need at least one configured source to start the application")
