@@ -24,13 +24,15 @@ class GistSource(SourceBase):
     """
 
     def __init__(self, config, name=None):
-        SourceBase.__init__(name)
+        if name:
+            self.name = name
 
         self.SOURCE_TYPE = "gist"
         self._oauth_token = config.get('oauth')
         self._username = config.get('username')
         self._uri = "https://api.github.com/gists/public?"
         self._api_version = "application/vnd.github.v3+json"
+        self.timeout = config.get('timeout')
 
     async def fetch_events(self):
         """Fetches the most recent gists created."""
@@ -44,11 +46,11 @@ class GistSource(SourceBase):
         async with aiohttp.ClientSession() as session:
             resp = await session.get(self._uri, headers=headers)
             gists = await resp.json()
-            APP_LOGGER.debug("GistSource fetched gists")
-
+            APP_LOGGER.debug("GistSource: %s Fetched Recent 30 Gists", self.name)
             event_list = list()
             tasks = list()
             for gist in gists:
+
                 ge = GistEvent(gist)
                 event_list.append(ge)
                 tasks.append(asyncio.create_task(ge.fetch(session)))
@@ -56,3 +58,11 @@ class GistSource(SourceBase):
             await asyncio.gather(*tasks)  # Fetch the raw content async
             APP_LOGGER.debug("%s GistEvents send for processing", len(gists))
             return event_list
+
+    async def fetch_events_scheduled(self, queue):
+        while True:
+            events = await self.fetch_events()
+            for event in events:
+                await queue.queue_event(event)
+
+            await asyncio.sleep(self.timeout)

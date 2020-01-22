@@ -39,10 +39,11 @@ class Loader():
 
         # Think of a way to express this in more elegant and dynamic fashion
         # Factory Pattern for the Sources for easy extendability.
+        # Sources should not be instantiated in Configuration.
+        # Make a factory method!!! ( I am talking to me )
         if yaml_file.get("sources", None):
+            self.SOURCES = list()
             sources_dict = yaml_file["sources"]
-
-            if sources_dict.get("gist", None):
-                self.SOURCE_GIST_CONF = sources_dict["gist"]
-            else:
-                self.SOURCE_GIST_CONF = None
+            if sources_dict.get("gist"):
+                sources_dict["gist"]["timeout"] = self.GLOBAL_SCRAPE_INTERVAL
+                self.SOURCES.append(sources_dict.get("gist"))
