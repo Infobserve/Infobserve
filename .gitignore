@@ -3,6 +3,7 @@
 
 # Python Stuff
 .egg-info/
+infobserve.egg-info/
 pip-wheel-metadata/
 __pycache__/
 *.pyc
