@@ -1,9 +1,9 @@
-""" Contains the config Loader class """
+""" Contains the config Config class """
 
 import yaml
 
 
-class Loader():
+class Config():
     """Infobserver's configuration loader!
 
     Attributes:
@@ -47,3 +47,6 @@ class Loader():
             if sources_dict.get("gist"):
                 sources_dict["gist"]["timeout"] = self.GLOBAL_SCRAPE_INTERVAL
                 self.SOURCES.append(sources_dict.get("gist"))
+
+
+CONFIG = Config()
