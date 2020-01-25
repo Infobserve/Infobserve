@@ -1,9 +1,10 @@
 """The main entrypoint and interface of the infobserver application.
 """
 import asyncio
-from .config import CONFIG
-from .logger import APP_LOGGER
-from .processing.queue import ProcessingQueue
+
+from .common import CONFIG
+from .common import APP_LOGGER
+from .common.queue import ProcessingQueue
 from .sources import GistSource
 
 __version__ = '0.1.0'
@@ -42,8 +43,7 @@ def main():
     processing_queue = ProcessingQueue(CONFIG.PROCESSING_QUEUE_SIZE)
 
     main_loop = asyncio.get_event_loop()
-    main_loop = source_scheduler(init_sources(CONFIG.SOURCES), main_loop,
-                                 processing_queue)
+    main_loop = source_scheduler(init_sources(CONFIG.SOURCES), main_loop, processing_queue)
     main_loop.create_task(log_consumer(processing_queue))
     APP_LOGGER.debug("Consumer Scheduled")
     APP_LOGGER.info("Main Loop Initialized")

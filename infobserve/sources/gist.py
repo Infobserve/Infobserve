@@ -2,8 +2,8 @@ import asyncio
 
 import aiohttp
 
-from infobserve.logger import APP_LOGGER
-from infobserve.models import GistEvent
+from infobserve.common import APP_LOGGER
+from infobserve.events import GistEvent
 
 from .source import SourceBase
 

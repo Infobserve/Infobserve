@@ -1,15 +1,16 @@
-"""This module contains the logger Loader class.
+"""This module contains the Logger class.
 
-The Loader is used to instantiate a centralized logging configuration for the
+The Logger is used to instantiate a centralized logging configuration for the
 loggers used in the application.
 """
 
 import logging
-from infobserve.config import CONFIG
+
+from .config import CONFIG
 
 
-class Loader():
-    """Infobserver's logger loader!
+class Logger():
+    """Infobserver's Logger!
 
     Attributes:
         APP_LOGGER (logger): The configured logger of the app
@@ -18,7 +19,7 @@ class Loader():
     def __init__(self):
         """
 
-        The __init__ method of the Loader class.
+        The __init__ method of the Logger class.
 
         Configures the application logger and assigns the configured logger
         in an attribute APP_LOGGER
@@ -36,3 +37,6 @@ class Loader():
     def get_logger(self):
         """Returns the application logger."""
         return self.logger
+
+
+APP_LOGGER = Logger().get_logger()
