@@ -3,7 +3,7 @@
 import asyncio
 from .config import CONFIG
 from .logger import APP_LOGGER
-from .processing.queue import EventQueue
+from .processing.queue import ProcessingQueue
 from .sources import GistSource
 
 __version__ = '0.1.0'
@@ -24,10 +24,10 @@ async def log_consumer(queue):
                          event.size, event.creator)
 
 
-def source_scheduler(sources, loop):
+def source_scheduler(sources, loop, processing_queue):
     for source in sources:
         APP_LOGGER.debug("Scheduling Source:%s", source.name)
-        loop.create_task(source.fetch_events_scheduled(EventQueue.get_instance()))
+        loop.create_task(source.fetch_events_scheduled(processing_queue))
 
     return loop
 
@@ -36,12 +36,19 @@ def consumer_scheduler():
     pass
 
 
-if __name__ == "__main__":
+def main():
     APP_LOGGER.info("Logging up and running")
     APP_LOGGER.debug("Configured Sources:%s", CONFIG.SOURCES)
+    processing_queue = ProcessingQueue(CONFIG.PROCESSING_QUEUE_SIZE)
+
     main_loop = asyncio.get_event_loop()
-    main_loop = source_scheduler(init_sources(CONFIG.SOURCES), main_loop)
-    main_loop.create_task(log_consumer(EventQueue.get_instance()))
+    main_loop = source_scheduler(init_sources(CONFIG.SOURCES), main_loop,
+                                 processing_queue)
+    main_loop.create_task(log_consumer(processing_queue))
     APP_LOGGER.debug("Consumer Scheduled")
     APP_LOGGER.info("Main Loop Initialized")
     main_loop.run_forever()
+
+
+if __name__ == "__main__":
+    main()
