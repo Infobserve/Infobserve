@@ -1,1 +1,1 @@
-from .gist import GistSource
+from .factory import SOURCE_FACTORY

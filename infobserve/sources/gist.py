@@ -5,7 +5,7 @@ import aiohttp
 from infobserve.common import APP_LOGGER
 from infobserve.events import GistEvent
 
-from .source import SourceBase
+from .base import SourceBase
 
 
 class GistSource(SourceBase):
