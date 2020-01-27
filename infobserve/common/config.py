@@ -41,12 +41,20 @@ class Config():
         # Factory Pattern for the Sources for easy extendability.
         # Sources should not be instantiated in Configuration.
         # Make a factory method!!! ( I am talking to me )
-        if yaml_file.get("sources", None):
-            self.SOURCES = list()
-            sources_dict = yaml_file["sources"]
-            if sources_dict.get("gist"):
-                sources_dict["gist"]["timeout"] = self.GLOBAL_SCRAPE_INTERVAL
-                self.SOURCES.append(sources_dict.get("gist"))
+        if yaml_file.get("sources"):
+            self.SOURCES = self._source_configs(yaml_file.get("sources"))
+
+    def _source_configs(self, sources):
+        list_sources = list()
+        for source, configs in sources.items():
+            configs["type"] = source
+            if configs.get("scrape_interval"):
+                configs["timeout"] = configs.get("scrape_interval")
+            else:
+                configs["timeout"] = self.GLOBAL_SCRAPE_INTERVAL
+            list_sources.append(configs)
+
+        return list_sources
 
 
 CONFIG = Config()

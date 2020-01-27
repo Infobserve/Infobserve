@@ -5,7 +5,7 @@ import asyncio
 from .common import CONFIG
 from .common import APP_LOGGER
 from .common.queue import ProcessingQueue
-from .sources import GistSource
+from .sources import SOURCE_FACTORY
 
 __version__ = '0.1.0'
 
@@ -14,7 +14,7 @@ def init_sources(config):
     sources = list()
     for conf_source in config:
         APP_LOGGER.debug("conf_source:%s", conf_source)
-        sources.append(GistSource(conf_source, name="Gist"))
+        sources.append(SOURCE_FACTORY.get_source(conf_source))
     return sources
 
 
