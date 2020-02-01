@@ -1,6 +1,7 @@
 """ Contains the config Config class """
 
 import yaml
+import asyncpg
 
 
 class Config():
@@ -10,7 +11,10 @@ class Config():
         YARA_RULES_PATHS (list of str): Contains the paths that yara will search for rules.
         YARA_EXTERNAL_VARS (dict): Contains external variables that yara can use.
         GLOBAL_SCRAPE_INTERVAL (int): The global interval that infobserve will set in a source producer.
-
+        PROCESSING_QUEUE_SIZE (int): The max size the processing queue can reach.
+        LOGGING_LEVEL (str): The minimum level the logger will emmit messages.
+        SOURCES (dict): A dictionary of dictionaries with the configuration of each source.
+        _db_config (dict): A connection pool for the postgresql db server.
     """
 
     def __init__(self, config_file="config.yaml"):
@@ -36,7 +40,7 @@ class Config():
         self.YARA_EXTERNAL_VARS = yaml_file.get("yara_external_vars", None)
         self.PROCESSING_QUEUE_SIZE = yaml_file.get("processing_queue_size", 0)
         self.LOGGING_LEVEL = yaml_file.get("log_level", "DEBUG")
-
+        self._db_config = yaml_file.get("postgres")
         # Think of a way to express this in more elegant and dynamic fashion
         # Factory Pattern for the Sources for easy extendability.
         # Sources should not be instantiated in Configuration.
@@ -55,6 +59,14 @@ class Config():
             list_sources.append(configs)
 
         return list_sources
+
+    async def init_db_pool(self):
+        """Initialize the database connection pool.
+        Arguments:
+            db (dict): A dict with kwargs to initialize the connection pool.
+        """
+
+        return await asyncpg.create_pool(**self._db_config)
 
 
 CONFIG = Config()

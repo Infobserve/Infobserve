@@ -12,6 +12,13 @@ yara_external_vars:
   domain_example: example.com
   localhost_ip: "127.0.0.1"
 
+postgres:
+  database: database
+  host: localhost
+  port: 5432
+  user: root
+  password: root
+
 sources: # only gist source valid for now
   gist:
     scrape_interval: 60
