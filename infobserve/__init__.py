@@ -43,6 +43,9 @@ def main():
     processing_queue = ProcessingQueue(CONFIG.PROCESSING_QUEUE_SIZE)
 
     main_loop = asyncio.get_event_loop()
+
+    pg_pool = main_loop.run_until_complete(CONFIG.init_db_pool())
+
     main_loop = source_scheduler(init_sources(CONFIG.SOURCES), main_loop, processing_queue)
     main_loop.create_task(log_consumer(processing_queue))
     APP_LOGGER.debug("Consumer Scheduled")
