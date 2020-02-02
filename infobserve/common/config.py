@@ -68,5 +68,20 @@ class Config():
 
         return await asyncpg.create_pool(**self._db_config)
 
+    async def init_db(self, pool):
+        """Initialize the database schema.
+
+        Arguments:
+            pool (asyncpg.Pool): A connection pool to lease a db connection.
+        """
+        async with pool.acquire() as conn:
+            with open("infobserve-schema.sql") as init_script:
+                try:
+                    async with conn.transaction() as tr:
+                        await conn.execute(init_script.read())
+                # The init script should move to schema level and so does this error.
+                except asyncpg.exceptions.DuplicateTableError:
+                    print("Duplicate Table Error Raised the sql init script failed.")
+
 
 CONFIG = Config()

@@ -26,6 +26,7 @@ class GistEvent(BaseEvent):
     """The Events created from recent gists.
 
     Attributes:
+        id (string): A unique id that  github uses for gists.
         raw_url (string): The url that points to the raw content.
         size (int): The size in bytes.
         filename (string): The name of the file.
@@ -37,7 +38,7 @@ class GistEvent(BaseEvent):
         BaseEvent.__init__(self, raw_gist.get("created_at"), source="gist")
 
         unpacked_files_key = self.unpack(raw_gist.get("files"))
-
+        self.id = raw_gist["id"]
         self.raw_url = unpacked_files_key["raw_url"]
         self.size = unpacked_files_key["size"]
         self.filename = unpacked_files_key["filename"]

@@ -25,10 +25,10 @@ async def log_consumer(queue):
                          event.size, event.creator)
 
 
-def source_scheduler(sources, loop, processing_queue):
+def source_scheduler(sources, loop, processing_queue, pool=None):
     for source in sources:
         APP_LOGGER.debug("Scheduling Source:%s", source.name)
-        loop.create_task(source.fetch_events_scheduled(processing_queue))
+        loop.create_task(source.fetch_events_scheduled(processing_queue, pool))
 
     return loop
 
@@ -46,7 +46,10 @@ def main():
 
     pg_pool = main_loop.run_until_complete(CONFIG.init_db_pool())
 
-    main_loop = source_scheduler(init_sources(CONFIG.SOURCES), main_loop, processing_queue)
+    main_loop.run_until_complete(CONFIG.init_db(pg_pool))
+    APP_LOGGER.info("Initialized Schema")
+
+    main_loop = source_scheduler(init_sources(CONFIG.SOURCES), main_loop, processing_queue, pg_pool)
     main_loop.create_task(log_consumer(processing_queue))
     APP_LOGGER.debug("Consumer Scheduled")
     APP_LOGGER.info("Main Loop Initialized")
