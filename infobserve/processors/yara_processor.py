@@ -1,9 +1,10 @@
-from enum import Enum
-from pathlib import Path
 import asyncio
 import sys
+from enum import Enum
+from pathlib import Path
 
 import yara
+
 from infobserve.common import APP_LOGGER
 from infobserve.common.queue import ProcessingQueue
 

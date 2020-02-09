@@ -1,25 +1,5 @@
-'''Declare the base event class '''
-from abc import ABCMeta, abstractmethod
-
-
-class BaseEvent(metaclass=ABCMeta):
-    """The Abstract Base Class of Events.
-
-    This class represents a basis to represent the events
-    created from data sources.
-
-    Attributes:
-        timestamp (string): The creation timestamp as a source.
-        source (string): The source the event comes from
-    """
-
-    def __init__(self, timestamp, source=None):
-        self.timestamp = timestamp
-        self.source = source
-
-    @abstractmethod
-    def process_event(self):
-        pass
+"""The implementation of the GistEvent Class."""
+from .base import BaseEvent
 
 
 class GistEvent(BaseEvent):
@@ -35,9 +15,14 @@ class GistEvent(BaseEvent):
     """
 
     def __init__(self, raw_gist):
+        """Instantiates the GistEvent.
+
+        Arguments:
+            raw_gist (dict): A complex dictionary returned by the gist API.
+        """
         BaseEvent.__init__(self, raw_gist.get("created_at"), source="gist")
 
-        unpacked_files_key = self.unpack(raw_gist.get("files"))
+        unpacked_files_key = self._unpack(raw_gist.get("files"))
         self.id = raw_gist["id"]
         self.raw_url = unpacked_files_key["raw_url"]
         self.size = unpacked_files_key["size"]
@@ -45,7 +30,7 @@ class GistEvent(BaseEvent):
         self.creator = raw_gist["owner"]["login"]
         self.raw_content = None
 
-    async def fetch(self, session):
+    async def get_raw_content(self, session):
         """Retrieves the raw content of the gist.
 
         Arguments:
@@ -60,12 +45,9 @@ class GistEvent(BaseEvent):
         return self.raw_content
 
     @staticmethod
-    def unpack(nested_dict):
+    def _unpack(nested_dict):
         """
         Helps unpack the files key returned from the gist api.
         """
         for value in nested_dict.values():
             return value
-
-    def process_event(self):
-        pass

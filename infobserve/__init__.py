@@ -2,11 +2,10 @@
 """
 import asyncio
 
-from .common import CONFIG
-from .common import APP_LOGGER
+from .common import APP_LOGGER, CONFIG
 from .common.queue import ProcessingQueue
-from .sources import SOURCE_FACTORY
 from .processors.yara_processor import YaraProcessor
+from .sources import SOURCE_FACTORY
 
 __version__ = '0.1.0'
 
@@ -19,10 +18,10 @@ def init_sources(config):
     return sources
 
 
-def source_scheduler(sources, loop, source_queue, pool=None):
+def source_scheduler(sources, loop, source_queue):
     for source in sources:
         APP_LOGGER.debug("Scheduling Source:%s", source.name)
-        loop.create_task(source.fetch_events_scheduled(source_queue, pool))
+        loop.create_task(source.fetch_events_scheduled(source_queue))
 
     return loop
 
@@ -56,12 +55,10 @@ def main():
 
     main_loop = asyncio.get_event_loop()
 
-    pg_pool = main_loop.run_until_complete(CONFIG.init_db_pool())
-
-    main_loop.run_until_complete(CONFIG.init_db(pg_pool))
+    main_loop.run_until_complete(CONFIG.init_db())
     APP_LOGGER.info("Initialized Schema")
 
-    main_loop = source_scheduler(init_sources(CONFIG.SOURCES), main_loop, source_queue, pg_pool)
+    main_loop = source_scheduler(init_sources(CONFIG.SOURCES), main_loop, source_queue)
     main_loop = consumer_scheduler(main_loop, source_queue, db_queue)
 
     APP_LOGGER.debug("Consumer Scheduled")

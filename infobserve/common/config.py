@@ -1,7 +1,10 @@
 """ Contains the config Config class """
 
-import yaml
+import asyncio
+
 import asyncpg
+import yaml
+from .pool import PgPool
 
 
 class Config():
@@ -60,21 +63,14 @@ class Config():
 
         return list_sources
 
-    async def init_db_pool(self):
-        """Initialize the database connection pool.
-        Arguments:
-            db (dict): A dict with kwargs to initialize the connection pool.
-        """
-
-        return await asyncpg.create_pool(**self._db_config)
-
-    async def init_db(self, pool):
+    async def init_db(self):
         """Initialize the database schema.
-
-        Arguments:
-            pool (asyncpg.Pool): A connection pool to lease a db connection.
         """
-        async with pool.acquire() as conn:
+
+        pg_pool = PgPool()
+        await pg_pool.init_db_pool(self._db_config)
+
+        async with pg_pool.acquire() as conn:
             with open("infobserve-schema.sql") as init_script:
                 try:
                     async with conn.transaction() as tr:
