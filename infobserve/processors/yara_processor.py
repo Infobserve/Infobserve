@@ -86,7 +86,8 @@ class YaraProcessor:
                     APP_LOGGER.debug("Processing new event")
                     items_processed += 1
 
-                    matches = self._engine.match(data=event.get_raw_content())
+                    raw_content = await event.get_raw_content()
+                    matches = self._engine.match(data=raw_content)
 
                     for match in matches:
                         APP_LOGGER.debug(
