@@ -38,7 +38,7 @@ def consumer_scheduler(loop, source_queue, db_queue):
                                                             matches
     """
     APP_LOGGER.debug("Starting Yara Processor")
-    consumer = YaraProcessor(CONFIG.YARA_RULES_PATHS, source_queue, db_queue)
+    consumer = YaraProcessor(CONFIG.YARA_RULES_PATHS, source_queue, db_queue, CONFIG.YARA_EXTERNAL_VARS)
     loop.create_task(consumer.process())
 
     return loop
