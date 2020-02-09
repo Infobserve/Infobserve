@@ -18,10 +18,10 @@ class YaraProcessor:
     Yara matching engine and adds them to the DB Queue (TBI)
     """
 
-    def __init__(self, rule_files, source_queue, db_queue):
+    def __init__(self, rule_files, source_queue, db_queue, ext_vars=None):
         """
         Args:
-            rule_files (list): A list of paths to the Yara rule files
+            rule_files (list[str]): A list of paths to the Yara rule files
                                Each item can contain wildcards.
             source_queue (infobserve.processing.queue.ProcessingQueue):
                         An instance of the queue in which Source objects will
@@ -29,6 +29,9 @@ class YaraProcessor:
             db_queue (infobserve.processing.queue.ProcessingQueue):
                         An instance of the queue in which Event objects will
                         be inserted into
+            ext_vars (dict[str: str]): A dictionary containing the values
+                                       for any external variables used
+                                       in the Yara rule files
         """
         self._processing = False
         self._rules = {}
@@ -36,6 +39,7 @@ class YaraProcessor:
         self._source_queue = source_queue
         self._db_queue = db_queue
         self._cmd_queue = ProcessingQueue()
+        self._ext_vars = ext_vars
 
         # Generate rules along with their namespaces
         self._rules = self._generate_rules(rule_files)
@@ -49,7 +53,7 @@ class YaraProcessor:
         Queue for further processing and storage (TBI - Right now, it simply
         logs matches)
         """
-        APP_LOGGER.info("Processing started using the Yara Engine")
+        APP_LOGGER.info("Processing started. (Using Yara Engine)")
         self._processing = True
 
         # A (practically) infinite amount of items will be processed
@@ -68,7 +72,7 @@ class YaraProcessor:
                     if event == YaraProcessor._Command.RECOMPILE:
                         APP_LOGGER.info("Recompile command received")
                         self._processing = False
-                        self.compile_rules()
+                        await self.compile_rules()
                         self._processing = True
                     elif event == YaraProcessor._Command.STOP:
                         # When a STOP command is received, all remaining items in the queue will be processed
@@ -82,7 +86,7 @@ class YaraProcessor:
                     APP_LOGGER.debug("Processing new event")
                     items_processed += 1
 
-                    matches = self._engine.match(data=event.raw_content)
+                    matches = self._engine.match(data=event.get_raw_content())
 
                     for match in matches:
                         APP_LOGGER.debug(
@@ -110,12 +114,36 @@ class YaraProcessor:
 
         APP_LOGGER.info("Refreshing Yara rules (%s)", "Appending" if append else "Replacing")
 
-        new_rules = {filepath: filepath for filepath in self._get_file_sources(rule_files)}
+        new_rules = {filepath: filepath for filepath in YaraProcessor._get_file_sources(rule_files)}
 
         if append:
             self._rules.update(new_rules)
         else:
             self._rules = new_rules
+
+        if recompile:
+            await self.compile_rules()
+
+    async def add_ext_vars(self, ext_vars, append=True, recompile=False):
+        """
+        Dynamically adds additional Yara rule external variables. Should mostly be useful for when reloading yara rules
+        as well
+
+        Args:
+            ext_vars (dict[str: str]): A dictionary containing the values for any external variables used in the Yara
+                                       rule files
+            append (bool): If True, the new external variables will be appended to the existing ones, otherwise the old
+                           ones will be replaced. Default: True
+            recompile (bool): If Trie, the Yara processor will be re-compiled after loading the new rules.
+                              Default: False
+        """
+
+        APP_LOGGER.info("Refreshing Yara external variables (%s)", "Appending" if append else "Replacing")
+
+        if append:
+            self._ext_vars.update(ext_vars)
+        else:
+            self._ext_vars = ext_vars
 
         if recompile:
             await self.compile_rules()
@@ -170,7 +198,7 @@ class YaraProcessor:
         Compiles the loaded Yara rules
         """
         APP_LOGGER.info("Recompiling Yara rules")
-        return yara.compile(filepaths=self._rules)
+        return yara.compile(filepaths=self._rules, externals=self._ext_vars)
 
     def _generate_rules(self, rule_files):
         """
@@ -179,9 +207,10 @@ class YaraProcessor:
         Args:
             rule_files (list[str]): The list of rule file paths to resolve
         """
-        return {filename: filename for filename in self._get_file_sources(rule_files)}
+        return {filename: filename for filename in YaraProcessor._get_file_sources(rule_files)}
 
-    def _get_file_sources(self, rule_files):
+    @staticmethod
+    def _get_file_sources(rule_files):
         """
         Resolves the paths provided in the `rule_files` list. Also expands
         any `*` found in the paths using pathlib.Path

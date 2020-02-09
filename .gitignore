@@ -14,3 +14,7 @@ poetry.lock
 
 # Test Config
 config.yaml
+
+# IDEs/Editors
+.idea
+.vscode
