@@ -1,0 +1,51 @@
+"""The abstract representation of a match"""
+from infobserve.matches.ascii_match import AsciiMatch
+
+
+class Match():
+
+    def __init__(self, yara_match):
+        """The MatchBase constructor.
+
+        Arguments:
+            match_id (int): The id of the ProcessedEvent the Match references.
+            event_id (int): The id of the Match in the database.
+            rule_matched (str): The rule that matched
+            tags_matched (list(str)): A list with the tags of matched rule
+            ascii_matches (list(infobserve.matches.AsciiMatches))
+        """
+        self.match_id = None
+        self.event_id = None
+        self.rule_matched = yara_match.rule
+        self.tags_matched = yara_match.tags
+        self.ascii_matches = self._create_ascii_matches(yara_match.strings)
+
+    def set_match_id(self, match_id):
+        """Setter method for the match_id.
+
+        Assigns the values to the related AsciiMatches also.
+        Arguments:
+            match_id (int): The id of the Match object in the database table.
+        """
+        self.match_id = match_id
+        for ascii_match in self.ascii_matches:
+            ascii_match.match_id = match_id
+
+    def _create_ascii_matches(self, strings):
+        """Construct the list of AsciiMatch objects.
+
+        Arguments:
+            strings (list(str)): A list of the strings that matched.
+
+        Returns:
+            ascii_matches (list(infobserve.matches.AsciiMatches)): A list of the AsciiMatches objects.
+        """
+        ascii_matches = list()
+
+        for string in strings[0]:
+            ascii_matches.append(AsciiMatch(string))
+
+        return ascii_matches
+
+    def _create_binary_matches(self):
+        raise NotImplementedError
