@@ -8,17 +8,19 @@ class Match():
         """The MatchBase constructor.
 
         Arguments:
-            match_id (int): The id of the ProcessedEvent the Match references.
-            event_id (int): The id of the Match in the database.
-            rule_matched (str): The rule that matched
-            tags_matched (list(str)): A list with the tags of matched rule
-            ascii_matches (list(infobserve.matches.AsciiMatches))
+            yara_match (yara.Match): A yara match object as returned by Yara.Rules.match. It contains the following
+                                     attributes:
+                                        match_id (int): The id of the ProcessedEvent the Match references.
+                                        event_id (int): The id of the Match in the database.
+                                        rule_matched (str): The rule that matched
+                                        tags_matched (list(str)): A list with the tags of matched rule
+                                        ascii_matches (list(infobserve.matches.AsciiMatches))
         """
         self.match_id = None
         self.event_id = None
         self.rule_matched = yara_match.rule
         self.tags_matched = yara_match.tags
-        self.ascii_matches = self._create_ascii_matches(yara_match.strings)
+        self.ascii_matches = Match._create_ascii_matches(yara_match.strings)
 
     def set_match_id(self, match_id):
         """Setter method for the match_id.
@@ -31,7 +33,8 @@ class Match():
         for ascii_match in self.ascii_matches:
             ascii_match.match_id = match_id
 
-    def _create_ascii_matches(self, strings):
+    @staticmethod
+    def _create_ascii_matches(strings):
         """Construct the list of AsciiMatch objects.
 
         Arguments:
@@ -47,5 +50,6 @@ class Match():
 
         return ascii_matches
 
+    @staticmethod
     def _create_binary_matches(self):
         raise NotImplementedError
