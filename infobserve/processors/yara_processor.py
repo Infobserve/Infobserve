@@ -195,7 +195,7 @@ class YaraProcessor:
         return yara.compile(filepaths=self._rules, externals=self._ext_vars)
 
     @staticmethod
-    def _generate_rules(self, rule_files):
+    def _generate_rules(rule_files):
         """
         Returns a dictionary containing the Namespace to rulefile mapping
 
