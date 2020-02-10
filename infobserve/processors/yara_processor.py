@@ -7,7 +7,7 @@ import yara
 
 from infobserve.common import APP_LOGGER
 from infobserve.common.queue import ProcessingQueue
-
+from infobserve.events.processed import ProcessedEvent
 # TODO: Add exception handlers. Async functions don't notify anyone
 #       when they fail, so the whole script hangs
 
@@ -42,7 +42,7 @@ class YaraProcessor:
         self._ext_vars = ext_vars
 
         # Generate rules along with their namespaces
-        self._rules = self._generate_rules(rule_files)
+        self._rules = YaraProcessor._generate_rules(rule_files)
         self._engine = self._compile_rules()
 
     async def process(self):
@@ -88,14 +88,8 @@ class YaraProcessor:
 
                     matches = self._engine.match(data=event.raw_content)
 
-                    for match in matches:
-                        APP_LOGGER.debug(
-                            """
-                            ======= Match ======
-                            Rule matched: %s
-                            Tags: %s
-                            Strings: %s
-                            """, match.rule, match.tags, match.strings)
+                    if matches:
+                        await self._db_queue.queue_event(ProcessedEvent(event, matches))
 
                     self._source_queue.notify()
 
@@ -200,6 +194,7 @@ class YaraProcessor:
         APP_LOGGER.info("Recompiling Yara rules")
         return yara.compile(filepaths=self._rules, externals=self._ext_vars)
 
+    @staticmethod
     def _generate_rules(self, rule_files):
         """
         Returns a dictionary containing the Namespace to rulefile mapping
