@@ -1,0 +1,12 @@
+.git
+.venv
+.vscode
+tests
+.gitignore
+.pylintrc
+.style.yapf
+config.example.yaml
+Dockerfile
+README.md
+//*.pyc
+//__pycache__
