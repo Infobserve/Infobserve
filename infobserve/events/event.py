@@ -23,11 +23,11 @@ class GistEvent(BaseEvent):
         BaseEvent.__init__(self, raw_gist.get("created_at"), source="gist")
 
         unpacked_files_key = self._unpack(raw_gist.get("files"))
-        self.id = raw_gist["id"]
-        self.raw_url = unpacked_files_key["raw_url"]
-        self.size = unpacked_files_key["size"]
-        self.filename = unpacked_files_key["filename"]
-        self.creator = raw_gist["owner"]["login"]
+        self.id = raw_gist.get("id")
+        self.raw_url = unpacked_files_key.get("raw_url")
+        self.size = unpacked_files_key.get("size")
+        self.filename = unpacked_files_key.get("filename")
+        self.creator = raw_gist["owner"].get("login")
         self.raw_content = None
 
     async def get_raw_content(self, session):
@@ -51,3 +51,13 @@ class GistEvent(BaseEvent):
         """
         for value in nested_dict.values():
             return value
+
+    def is_valid(self):
+        """Checks if the event has enough information to be processed.
+
+        Returns: (bool)
+        """
+        if not self.raw_url:
+            return False
+
+        return True
