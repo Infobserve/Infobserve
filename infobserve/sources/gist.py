@@ -68,7 +68,10 @@ class GistSource(SourceBase):
             for gist in gists:
                 # Create GistEvent objects and create io intensive tasks.
                 ge = GistEvent(gist)
-                event_list.append(ge)
+
+                if ge.is_valid():
+                    event_list.append(ge)
+
                 tasks.append(asyncio.create_task(ge.get_raw_content(session)))
 
             if self.index_cache:
