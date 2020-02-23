@@ -44,12 +44,11 @@ class Match():
             ascii_matches (list(infobserve.matches.AsciiMatches)): A list of the AsciiMatches objects.
         """
         ascii_matches = list()
-
-        for string in strings[0]:
-            ascii_matches.append(AsciiMatch(string))
+        for string in strings:
+            ascii_matches.append(AsciiMatch(string[2].decode('UTF-8')))
 
         return ascii_matches
 
     @staticmethod
-    def _create_binary_matches(self):
+    def _create_binary_matches():
         raise NotImplementedError
