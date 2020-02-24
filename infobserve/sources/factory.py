@@ -8,6 +8,7 @@ class SourceFactory():
     def __init__(self):
         """Initializes the SourceFactory Object."""
         self._sources = dict()
+        self.register_source("gist", GistSource)
 
     def register_source(self, source_type, constructor):
         """Registers a Source Class into the SourceFactory.
@@ -31,7 +32,3 @@ class SourceFactory():
         if not source:
             raise ValueError(config.get("type"))
         return source(config, name=config.get("type"))
-
-
-SOURCE_FACTORY = SourceFactory()
-SOURCE_FACTORY.register_source("gist", GistSource)

@@ -5,26 +5,10 @@ import asyncio
 from infobserve.common import APP_LOGGER, CONFIG
 from infobserve.common.queue import ProcessingQueue
 from infobserve.processors.yara_processor import YaraProcessor
-from infobserve.sources import SOURCE_FACTORY
+from infobserve.schedulers.source import SourceScheduler
 from infobserve.loaders.postgres import PgLoader
 
 __version__ = '0.1.0'
-
-
-def init_sources(config):
-    sources = list()
-    for conf_source in config:
-        APP_LOGGER.debug("conf_source:%s", conf_source)
-        sources.append(SOURCE_FACTORY.get_source(conf_source))
-    return sources
-
-
-def source_scheduler(sources, loop, source_queue):
-    for source in sources:
-        APP_LOGGER.debug("Scheduling Source:%s", source.name)
-        loop.create_task(source.fetch_events_scheduled(source_queue))
-
-    return loop
 
 
 def consumer_scheduler(loop, source_queue, db_queue):
@@ -50,10 +34,10 @@ def consumer_scheduler(loop, source_queue, db_queue):
 def main():
 
     APP_LOGGER.info("Logging up and running")
-    APP_LOGGER.debug("Configured Sources:%s", CONFIG.SOURCES)
     source_queue = ProcessingQueue(CONFIG.PROCESSING_QUEUE_SIZE)
     # TODO: Add DB queue size option in the config?
     db_queue = ProcessingQueue()
+    sources_scheduler = SourceScheduler(source_queue, sources=CONFIG.SOURCES)
 
     # Initialize Yara Processing queue
 
@@ -62,7 +46,7 @@ def main():
     main_loop.run_until_complete(CONFIG.init_db())
     APP_LOGGER.info("Initialized Schema")
 
-    main_loop = source_scheduler(init_sources(CONFIG.SOURCES), main_loop, source_queue)
+    main_loop = sources_scheduler.schedule(main_loop)
     main_loop = consumer_scheduler(main_loop, source_queue, db_queue)
 
     APP_LOGGER.debug("Consumer Scheduled")
