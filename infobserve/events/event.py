@@ -46,11 +46,19 @@ class GistEvent(BaseEvent):
 
     @staticmethod
     def _unpack(nested_dict):
-        """
-        Helps unpack the files key returned from the gist api.
+        """Helps unpack the "files" key returned from the gist api.
+
+        At the moment supports only 1 key->dictionary from the "files" key.
+        If the "files" key contains not valid values it will return an empty dict()
+        Arguments:
+            nested_dict (dict): The "files" key dictionary from a gist.
+        Returns:
+            (dict): The unpacked nested dictionary
         """
         for value in nested_dict.values():
-            return value
+            if value:
+                return value
+        return dict()
 
     def is_valid(self):
         """Checks if the event has enough information to be processed.
