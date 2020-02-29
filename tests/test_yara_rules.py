@@ -1,27 +1,18 @@
-from pathlib import Path
+from unittest.mock import patch
 
 import plyara
 import pytest
 import yara
 
+from infobserve.processors.yara_processor import YaraProcessor
 
-def resolve_rule_files(rule_files):
-    """
-    Resolves the paths provided in the `rule_files` list. Also expands
-    any `*` found in the paths using pathlib.Path
 
-    Args:
-        rule_files (list[str]): The list of rule file paths to resolve
-    Returns:
-        A generator object that yields each resolved path as a string
+def get_mocked_yaraprocessor():
+    """ Returns
     """
-    for rule_file in rule_files:
-        filepath = Path(rule_file)
-        if filepath.is_file():
-            yield filepath.as_posix()
-        else:
-            for inner_file in Path().glob(rule_file):
-                yield inner_file.as_posix()
+    with patch.object(YaraProcessor, "__init__", lambda x: None):
+        processor = YaraProcessor()  # pylint: disable=E1120
+        return processor
 
 
 def filter_metadata(metadata):
@@ -31,7 +22,7 @@ def filter_metadata(metadata):
     return False
 
 
-@pytest.mark.parametrize("yara_rule_file", resolve_rule_files(["yara-rules/**/*.yar"]))
+@pytest.mark.parametrize("yara_rule_file", get_mocked_yaraprocessor()._get_file_sources(["yara-rules/**/*.yar"]))
 def test_match_yara_rules(yara_rule_file):
     parser = plyara.Plyara()
 
