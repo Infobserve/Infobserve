@@ -10,13 +10,13 @@ asyncpg = "^0.20.1"
 aiohttp = "^3.6"
 pyyaml = "^5.3"
 yara-python = "^3.11.0"
-mypy = "^0.761"
 
 [tool.poetry.dev-dependencies]
 pytest = "^3.0"
 yapf = "^0.29.0"
 pylint = "^2.4.4"
 rope = "^0.16.0"
+mypy = "^0.761"
 
 
 [build-system]
