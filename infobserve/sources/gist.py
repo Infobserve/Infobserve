@@ -1,13 +1,17 @@
 import asyncio
+from typing import List, Dict
 
 import aiohttp
-import asyncpg
 
-from infobserve.common import APP_LOGGER, CONFIG
+from infobserve.common import APP_LOGGER
+from infobserve.common.exceptions import BadCredentials
 from infobserve.common.index_cache import IndexCache
+from infobserve.common.queue import ProcessingQueue
 from infobserve.events import GistEvent
 
 from .base import SourceBase
+
+BAD_CREDENTIALS = "Bad credentials"
 
 
 class GistSource(SourceBase):
@@ -25,7 +29,7 @@ class GistSource(SourceBase):
         _api_version (string): Gitlab's api version.
     """
 
-    def __init__(self, config, name=None):
+    def __init__(self, config: Dict, name: str = None):
         if name:
             self.name = name
 
@@ -34,13 +38,12 @@ class GistSource(SourceBase):
         self._username = config.get('username')
         self._uri = "https://api.github.com/gists/public?"
         self._api_version = "application/vnd.github.v3+json"
+        self._index_cache = IndexCache(self.SOURCE_TYPE)
         self.timeout = config.get('timeout')
-        self.index_cache = IndexCache(self.SOURCE_TYPE)
 
-    async def fetch_events(self):
-        """Fetches the most recent gists created.
-
-        Arguments:
+    async def fetch_events(self) -> List[GistEvent]:
+        """
+        Fetches the most recent gists created.
 
         Returns:
             event_list (list) : A list of GistEvent Objects.
@@ -55,10 +58,14 @@ class GistSource(SourceBase):
         async with aiohttp.ClientSession() as session:
             resp = await session.get(self._uri, headers=headers)
             gists = await resp.json()
+
+            if isinstance(gists, dict) and gists["message"] == BAD_CREDENTIALS:
+                raise BadCredentials("Could not authenticate against github API with the provided credentials")
+
             APP_LOGGER.debug("GistSource: %s Fetched Recent 30 Gists", self.name)
 
-            if self.index_cache:
-                cached_ids = await self.index_cache.query_index_cache()
+            if self._index_cache:
+                cached_ids = await self._index_cache.query_index_cache()
                 gists = list(filter(lambda elem: elem["id"] not in cached_ids, gists))
 
             event_list = list()
@@ -74,18 +81,19 @@ class GistSource(SourceBase):
 
                 tasks.append(asyncio.create_task(ge.get_raw_content(session)))
 
-            if self.index_cache:
-                await self.index_cache.update_index_cache([x["id"] for x in gists])
+            if self._index_cache:
+                await self._index_cache.update_index_cache([x["id"] for x in gists])
 
             await asyncio.gather(*tasks)  # Fetch the raw content async
             APP_LOGGER.debug("%s GistEvents send for processing", len(gists))
             return event_list
 
-    async def fetch_events_scheduled(self, queue):
-        """Call the fetch_events method on a schedule.
+    async def fetch_events_scheduled(self, queue: ProcessingQueue):
+        """
+        Call the fetch_events method on a schedule.
 
         Arguments:
-           queue (Queue): A queue to enqueue the events.
+           queue (ProcessingQueue): A processing queue to enqueue the events.
         """
         while True:
             events = await self.fetch_events()
