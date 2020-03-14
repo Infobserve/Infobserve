@@ -1,0 +1,23 @@
+version: "3.7"
+
+services:
+  postgres:
+    image: postgres:12-alpine
+    environment:
+      POSTGRES_USER: infobserve
+      POSTGRES_PASSWORD: infobserve
+      POSTGRES_DB: infobserve
+    networks:
+      - infobserve
+    ports:
+      - "5432:5432"
+
+  infobserve:
+    build: .
+    networks:
+      - infobserve
+    depends_on:
+      - postgres
+
+networks:
+  infobserve:

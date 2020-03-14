@@ -51,7 +51,7 @@ class GistSource(SourceBase):
             event_list (list) : A list of GistEvent Objects.
         """
 
-        headers = {
+        headers: Dict = {
             "user-agent": 'Infobserver',
             "Accept": self._api_version,
             "Authorization": f'token {self._oauth_token}'
