@@ -8,7 +8,7 @@ pip-wheel-metadata/
 __pycache__/
 *.pyc
 poetry.lock
-
+.mypy_cache
 # Pytest Stuff
 .pytest_cache/
 

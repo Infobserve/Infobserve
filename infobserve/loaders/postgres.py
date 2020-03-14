@@ -79,7 +79,6 @@ class PgLoader():
             res = await conn.fetch(
                 '''INSERT INTO MATCHES (event_id, rule_matched, tags_matched) VALUES ($1, $2, $3) RETURNING id;''',
                 match.event_id, match.rule_matched, match.tags_matched)
-            APP_LOGGER.debug("Inserted Match with id:%s", res[0]["id"])
 
             return res[0]["id"]
 
@@ -97,7 +96,5 @@ class PgLoader():
             res = await conn.fetch(
                 '''INSERT INTO ASCII_MATCH (match_id, matched_string) VALUES ($1, $2) RETURNING id;''',
                 ascii_match.match_id, str(ascii_match.matched_string))
-            APP_LOGGER.debug("Inserted AsciiMatch with id:%s", res[0]["id"])
 
             return res[0]["id"]
-

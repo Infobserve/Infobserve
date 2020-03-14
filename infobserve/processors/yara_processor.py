@@ -63,7 +63,6 @@ class YaraProcessor:
         items_processed = 0
         while items_processed < items_remaining:
             remaining = [self._source_queue.get_event(), self._cmd_queue.get_event()]
-            APP_LOGGER.debug("Polling cmd and source queues. Remaining: %s", remaining)
             completed_tasks, _ = await asyncio.wait(remaining, return_when=asyncio.FIRST_COMPLETED)
             for completed_task in completed_tasks:
                 event = await completed_task
@@ -83,7 +82,6 @@ class YaraProcessor:
                             "immediately" if items_remaining == 0 else f"after processing {items_remaining} items")
                     self._cmd_queue.notify()
                 else:
-                    APP_LOGGER.debug("Processing new event")
                     items_processed += 1
 
                     matches = self._engine.match(data=event.raw_content)

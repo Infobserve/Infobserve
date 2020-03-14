@@ -78,8 +78,9 @@ class GistSource(SourceBase):
 
                 if ge.is_valid():
                     event_list.append(ge)
-
-                tasks.append(asyncio.create_task(ge.get_raw_content(session)))
+                    tasks.append(asyncio.create_task(ge.get_raw_content(session)))
+                else:
+                    APP_LOGGER.warning("Dropped event with id:%s url not valid", ge.id)
 
             if self._index_cache:
                 await self._index_cache.update_index_cache([x["id"] for x in gists])
@@ -96,8 +97,11 @@ class GistSource(SourceBase):
            queue (ProcessingQueue): A processing queue to enqueue the events.
         """
         while True:
-            events = await self.fetch_events()
-            for event in events:
-                await queue.queue_event(event)
+            try:
+                events = await self.fetch_events()
+                for event in events:
+                    await queue.queue_event(event)
+            except aiohttp.client_exceptions.ClientPayloadError:
+                APP_LOGGER.warning("There was an error retrieving the payload will retry in next cycle.")
 
             await asyncio.sleep(self.timeout)
