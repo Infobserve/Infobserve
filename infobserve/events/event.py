@@ -41,7 +41,10 @@ class GistEvent(BaseEvent):
         """
         async with session.get(self.raw_url) as response:
             resp = await session.get(self.raw_url)
-            self.raw_content = await resp.text()
+            try:
+                self.raw_content = await resp.text()
+            except UnicodeDecodeError:
+                return self.raw_content
         return self.raw_content
 
     @staticmethod

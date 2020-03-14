@@ -1,7 +1,4 @@
 """ Contains the config Config class """
-
-import asyncio
-
 import asyncpg
 import yaml
 from .pool import PgPool

@@ -1,7 +1,7 @@
 """This module contains the ProcessedEvent class definition."""
 from datetime import datetime
 
-from infobserve.matches.match import Match
+from infobserve.matches import Match
 
 from .base import BaseEvent
 
@@ -73,4 +73,3 @@ class ProcessedEvent(BaseEvent):
         for match in matches:
             matches_list.append(Match(match))
         return matches_list
-

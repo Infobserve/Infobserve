@@ -1,4 +1,4 @@
-FROM python:3.8.1
+FROM python:3.8.1-slim
 
 RUN apt-get update && \
     apt-get install apt-utils -y && \
@@ -11,7 +11,5 @@ COPY pyproject.toml poetry.lock /app/
 RUN poetry config virtualenvs.in-project true && poetry install --no-dev
 
 COPY . /app/
-
-
 
 CMD . .venv/bin/activate && python main.py
