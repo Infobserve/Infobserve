@@ -31,7 +31,7 @@ class GistSource(SourceBase):
         _timeout(float): The frequency the gists endpoint is queried
     """
 
-    def __init__(self, config: Dict, name: str = None):
+    def __init__(self, config: Dict[str, str], name: str = None):
         if name:
             self.name: Optional[str] = name
 

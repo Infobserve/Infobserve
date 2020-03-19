@@ -1,8 +1,8 @@
 """The implementation of the GistEvent Class."""
 import asyncio
+from datetime import datetime
 
 from .base import BaseEvent
-from datetime import datetime
 
 
 class GistEvent(BaseEvent):

@@ -9,12 +9,12 @@ class Match():
 
         Arguments:
             yara_match (yara.Match): A yara match object as returned by Yara.Rules.match. It contains the following
-                                     attributes:
-                                        match_id (int): The id of the ProcessedEvent the Match references.
-                                        event_id (int): The id of the Match in the database.
-                                        rule_matched (str): The rule that matched
-                                        tags_matched (list(str)): A list with the tags of matched rule
-                                        ascii_matches (list(infobserve.matches.AsciiMatches))
+        Attributes:
+            match_id (int): The id of the ProcessedEvent the Match references.
+            event_id (int): The id of the Match in the database.
+            rule_matched (str): The rule that matched
+            tags_matched (list(str)): A list with the tags of matched rule
+            ascii_matches (list(infobserve.matches.AsciiMatches))
         """
         self.match_id = None
         self.event_id = None
