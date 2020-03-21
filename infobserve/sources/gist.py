@@ -86,6 +86,8 @@ class GistSource(SourceBase):
                 await self._index_cache.update_index_cache([x["id"] for x in gists])
 
             await asyncio.gather(*tasks)  # Fetch the raw content async
+            # filter out event with no raw_content.
+            event_list = list(filter(lambda x: not x.raw_content, event_list))
             APP_LOGGER.debug("%s GistEvents send for processing", len(gists))
             return event_list
 
