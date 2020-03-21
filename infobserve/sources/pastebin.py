@@ -3,7 +3,7 @@ from json.decoder import JSONDecodeError
 from typing import Dict, List
 
 import aiohttp
-from pbwrap import AsyncPastebin, Paste
+from pbwrap import AsyncPastebin, Paste  # type: ignore
 
 from infobserve.common import APP_LOGGER
 from infobserve.common.index_cache import IndexCache
@@ -28,14 +28,14 @@ class PastebinSource(SourceBase):
 
     async def fetch_events(self):
         pastes: List[Paste] = self.pastebin.get_recent_pastes(limit=50)
+        event_list = []
+        tasks = []
 
         if self._index_cache:
             cached_ids = await self._index_cache.query_index_cache()
-            pastes = list(filter(lambda elem: elem.key not in cached_ids, pastes))
+            pastes = [x for x in pastes if x.key not in cached_ids]
             APP_LOGGER.debug("Pastes number not in cache: %s", len(pastes))
 
-        event_list = list()
-        tasks = list()
         for paste in pastes:
             paste_event = PasteEvent(paste)
 
@@ -49,6 +49,7 @@ class PastebinSource(SourceBase):
                 await self._index_cache.update_index_cache([x.key for x in pastes])
 
         await asyncio.gather(*tasks)  # Fetch the raw content async
+        event_list = [x for x in event_list if x.raw_content]
 
         APP_LOGGER.debug("%s PastebinEvents send for processing", len(event_list))
         return event_list

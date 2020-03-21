@@ -31,7 +31,7 @@ class GistSource(SourceBase):
         _timeout(float): The frequency the gists endpoint is queried
     """
 
-    def __init__(self, config: Dict[str, str], name: str = None):
+    def __init__(self, config: Dict, name: str = None):
         if name:
             self.name: Optional[str] = name
 
@@ -41,7 +41,7 @@ class GistSource(SourceBase):
         self._uri: str = "https://api.github.com/gists/public?"
         self._api_version: str = "application/vnd.github.v3+json"
         self._index_cache: IndexCache = IndexCache(self.SOURCE_TYPE)
-        self.timeout: float = config.get('timeout', 60)
+        self.timeout: Union[float] = config.get('timeout', 60)
 
     async def fetch_events(self) -> List[GistEvent]:
         """
