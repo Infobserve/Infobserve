@@ -46,10 +46,10 @@ class GistEvent(BaseEvent):
                 try:
                     self.raw_content = await response.text()
                 except UnicodeDecodeError:
-                    return self.raw_content
+                    return None
             return self.raw_content
         except asyncio.TimeoutError:
-            return self.raw_content
+            return None
 
     @staticmethod
     def _unpack(nested_dict):
