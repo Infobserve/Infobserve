@@ -4,17 +4,17 @@
 
 CREATE TABLE IF NOT EXISTS EVENTS (
   ID SERIAL PRIMARY KEY,
-  SOURCE VARCHAR(256), -- The service in which the event was found
+  SOURCE ΤΕΧΤ, -- The service in which the event was found
   RAW_CONTENT TEXT, -- The raw text of the event
-  FILENAME VARCHAR(64), -- The name of the file in which the event was found
-  CREATOR VARCHAR(64), -- The name of the user that created the post that contained the event
+  FILENAME ΤΕΧΤ, -- The name of the file in which the event was found
+  CREATOR ΤΕΧΤ, -- The name of the user that created the post that contained the event
   TIME_CREATED TIMESTAMPTZ, -- The time and date the event was created
   TIME_DISCOVERED TIMESTAMPTZ -- The time and date the event was discovered
 );
 CREATE TABLE IF NOT EXISTS MATCHES (
   ID SERIAL PRIMARY KEY,
   EVENT_ID INTEGER REFERENCES EVENTS(ID), -- A reference to the event in which the rule matched
-  RULE_MATCHED VARCHAR(128), -- The name of the yara rule that matched
+  RULE_MATCHED ΤΕΧΤ, -- The name of the yara rule that matched
   TAGS_MATCHED TEXT [] -- The tags of the rule that matched
 );
 CREATE TABLE IF NOT EXISTS BINARY_MATCH (
@@ -39,7 +39,7 @@ CREATE OR REPLACE FUNCTION expire_cached_rows() RETURNS trigger
   LANGUAGE plpgsql
   AS $$
 BEGIN
-  DELETE FROM INDEX_CACHE WHERE CACHED_TIME < NOW() - INTERVAL '8 hours';
+  DELETE FROM INDEX_CACHE WHERE CACHED_TIME < NOW() - INTERVAL '2 hours';
   RETURN NULL;
 END;
 $$;
