@@ -1,6 +1,7 @@
 '''Declare the base event class '''
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
+
 from infobserve.common import APP_LOGGER
 
 

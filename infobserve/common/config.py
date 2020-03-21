@@ -1,8 +1,9 @@
 """ Contains the config Config class """
-import asyncpg
+import asyncpg  # type: ignore
 import yaml
-from .pool import PgPool
+
 from .cli_parser import CLI_ARGS
+from .pool import PgPool
 
 
 class Config():
