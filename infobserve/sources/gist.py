@@ -60,8 +60,8 @@ class GistSource(SourceBase):
         async with aiohttp.ClientSession() as session:
             resp = await session.get(self._uri, headers=headers)
             gists = await resp.json()
-            event_list = list()
-            tasks = list()
+            event_list = []
+            tasks = []
 
             if isinstance(gists, dict) and gists["message"] == BAD_CREDENTIALS:
                 raise BadCredentials("Could not authenticate against github API with the provided credentials")
