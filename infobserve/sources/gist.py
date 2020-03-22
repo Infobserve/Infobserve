@@ -1,5 +1,5 @@
 import asyncio
-from typing import List, Dict
+from typing import Any, Dict, List, Optional, Union
 
 import aiohttp
 
@@ -27,19 +27,21 @@ class GistSource(SourceBase):
         _username (string): The username of the user to authenticate.
         _uri (string): Gitlab's api uri.
         _api_version (string): Gitlab's api version.
+        _index_cache(infobserve.common.index_cache.IndexCache): IndexCache object to query the postgres cache
+        _timeout(float): The frequency the gists endpoint is queried
     """
 
     def __init__(self, config: Dict, name: str = None):
         if name:
-            self.name = name
+            self.name: Optional[str] = name
 
-        self.SOURCE_TYPE = "gist"
-        self._oauth_token = config.get('oauth')
-        self._username = config.get('username')
-        self._uri = "https://api.github.com/gists/public?"
-        self._api_version = "application/vnd.github.v3+json"
-        self._index_cache = IndexCache(self.SOURCE_TYPE)
-        self.timeout = config.get('timeout')
+        self.SOURCE_TYPE: str = "gist"
+        self._oauth_token: Optional[Any] = config.get('oauth')
+        self._username: Optional[Any] = config.get('username')
+        self._uri: str = "https://api.github.com/gists/public?"
+        self._api_version: str = "application/vnd.github.v3+json"
+        self._index_cache: IndexCache = IndexCache(self.SOURCE_TYPE)
+        self.timeout: float = config.get('timeout', 60)
 
     async def fetch_events(self) -> List[GistEvent]:
         """
@@ -58,18 +60,16 @@ class GistSource(SourceBase):
         async with aiohttp.ClientSession() as session:
             resp = await session.get(self._uri, headers=headers)
             gists = await resp.json()
+            event_list = []
+            tasks = []
 
             if isinstance(gists, dict) and gists["message"] == BAD_CREDENTIALS:
                 raise BadCredentials("Could not authenticate against github API with the provided credentials")
 
-            APP_LOGGER.debug("GistSource: %s Fetched Recent 30 Gists", self.name)
-
+            APP_LOGGER.debug("GistSource: %s Fetched Recent %s Gists", self.name, len(gists))
             if self._index_cache:
                 cached_ids = await self._index_cache.query_index_cache()
-                gists = list(filter(lambda elem: elem["id"] not in cached_ids, gists))
-
-            event_list = list()
-            tasks = list()
+                gists = [x for x in gists if x["id"] not in cached_ids]
             APP_LOGGER.debug("Gists number not in cache: %s", len(gists))
 
             for gist in gists:
@@ -81,11 +81,14 @@ class GistSource(SourceBase):
                     tasks.append(asyncio.create_task(ge.get_raw_content(session)))
                 else:
                     APP_LOGGER.warning("Dropped event with id:%s url not valid", ge.id)
-
+            # Check the index_cache.
             if self._index_cache:
                 await self._index_cache.update_index_cache([x["id"] for x in gists])
 
-            await asyncio.gather(*tasks)  # Fetch the raw content async
+            # Fetch the raw content async.
+            await asyncio.gather(*tasks)
+            # filter out event with no raw_content.
+            event_list = [x for x in event_list if x.raw_content]
             APP_LOGGER.debug("%s GistEvents send for processing", len(gists))
             return event_list
 
@@ -98,7 +101,7 @@ class GistSource(SourceBase):
         """
         while True:
             try:
-                events = await self.fetch_events()
+                events: List[GistEvent] = await self.fetch_events()
                 for event in events:
                     await queue.queue_event(event)
             except aiohttp.client_exceptions.ClientPayloadError:

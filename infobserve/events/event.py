@@ -1,4 +1,6 @@
 """The implementation of the GistEvent Class."""
+import asyncio
+
 from .base import BaseEvent
 
 
@@ -39,13 +41,15 @@ class GistEvent(BaseEvent):
         Returns:
             raw_content (string): The content of the gist.
         """
-        async with session.get(self.raw_url) as response:
-            resp = await session.get(self.raw_url)
-            try:
-                self.raw_content = await resp.text()
-            except UnicodeDecodeError:
-                return self.raw_content
-        return self.raw_content
+        try:
+            async with await session.get(self.raw_url) as response:
+                try:
+                    self.raw_content = await response.text()
+                except UnicodeDecodeError:
+                    return None
+            return self.raw_content
+        except asyncio.TimeoutError:
+            return None
 
     @staticmethod
     def _unpack(nested_dict):
