@@ -1,0 +1,34 @@
+image: "python:3.8"
+
+before_script:
+  - python --version
+  - pip install -r requirements.txt
+
+stages:
+  - Static Analysis
+
+pylint:
+  stage: Static Analysis
+  script:
+    - pylint infobserve/
+  only:
+    - master
+    - develop
+    - merge_requests
+
+mypy:
+  stage: Static Analysis
+  script:
+    - mypy infobserve/
+  only:
+    - master
+    - develop
+    - merge_requests
+
+cyclic-complexity:
+  stage: Static Analysis
+  script:
+    - radon cc -s -n B infobserve/
+    - radon mi -s -n B infobserve/
+  only:
+    - merge_requests
