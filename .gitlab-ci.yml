@@ -10,7 +10,7 @@ stages:
 pylint:
   stage: Static Analysis
   script:
-    - pylint infobserve/
+    - pylint -r yes --exit-zero infobserve/
   only:
     - master
     - develop
