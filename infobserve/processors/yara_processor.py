@@ -229,7 +229,7 @@ class YaraProcessor:
     def _has_blacklist(matches):
         for match in matches:
             # If the blacklist rule has matched as well, we ignore the entire event
-            if match.rules == BLACKLIST_RULE:
+            if match.rule == BLACKLIST_RULE:
                 return True
         return True
 
