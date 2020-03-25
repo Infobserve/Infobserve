@@ -12,7 +12,6 @@ from infobserve.events.processed import ProcessedEvent
 # TODO: Add exception handlers. Async functions don't notify anyone
 #       when they fail, so the whole script hangs
 
-
 BLACKLIST_RULE = "BlacklistRule"
 
 
@@ -82,8 +81,8 @@ class YaraProcessor:
                         # and then processing will stop
                         items_remaining = self._source_queue.events_left()
                         APP_LOGGER.info(
-                            "Stop command received. Will stop %s",
-                            "immediately" if items_remaining == 0 else (f"after processing {items_remaining} items"))
+                            "Stop command received. Will stop %s", "immediately" if items_remaining == 0 else
+                            (f"after processing {items_remaining} items"))
                     self._cmd_queue.notify()
                 else:
                     items_processed += 1
@@ -91,11 +90,8 @@ class YaraProcessor:
                     matches = self._engine.match(data=event.raw_content)
 
                     if matches:
-                        for match in matches:
-                            # If the blacklist rule has matched as well, we ignore the entire event
-                            if match.rules == BLACKLIST_RULE:
-                                continue
-                        await self._db_queue.queue_event(ProcessedEvent(event, matches))
+                        if not self._has_blacklist(matches):
+                            await self._db_queue.queue_event(ProcessedEvent(event, matches))
 
                     self._source_queue.notify()
 
@@ -228,6 +224,14 @@ class YaraProcessor:
             else:
                 for inner_file in Path().glob(rule_file):
                     yield inner_file.as_posix()
+
+    @staticmethod
+    def _has_blacklist(matches):
+        for match in matches:
+            # If the blacklist rule has matched as well, we ignore the entire event
+            if match.rules == BLACKLIST_RULE:
+                return True
+        return True
 
     class _Command(Enum):
         RECOMPILE = 1
