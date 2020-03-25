@@ -6,8 +6,9 @@ rule BlacklistRule
         date = "2020-03-25"
 
     strings:
-        // fillme
+        $a = "#EXTINF:" nocase // IPTV streams
+        $b = "Technic Launcher is starting" // Minecraft mod dumps
 
     condition:
-        // fillme
+        any of them
 }
