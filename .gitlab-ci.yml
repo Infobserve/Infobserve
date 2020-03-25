@@ -12,8 +12,6 @@ pylint:
   script:
     - pylint -r yes --exit-zero infobserve/
   only:
-    - master
-    - develop
     - merge_requests
 
 mypy:
@@ -21,8 +19,6 @@ mypy:
   script:
     - mypy infobserve/
   only:
-    - master
-    - develop
     - merge_requests
 
 cyclic-complexity:
