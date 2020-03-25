@@ -32,9 +32,7 @@ class GistSource(SourceBase):
     """
 
     def __init__(self, config: Dict, name: str = None):
-        if name:
-            self.name: Optional[str] = name
-
+        SourceBase.__init__(self, name=name)
         self.SOURCE_TYPE: str = "gist"
         self._oauth_token: Optional[Any] = config.get('oauth')
         self._username: Optional[Any] = config.get('username')

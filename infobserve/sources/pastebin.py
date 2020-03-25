@@ -18,9 +18,7 @@ class PastebinSource(SourceBase):
     """
 
     def __init__(self, config, name: str = None):
-        if name:
-            self.name = name
-
+        SourceBase.__init__(self, name=name)
         self.SOURCE_TYPE: str = "pastebin"
         self.pastebin: AsyncPastebin = AsyncPastebin(dev_key=config.get("dev_key"))
         self.timeout: float = float(config.get("timeout"))
