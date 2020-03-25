@@ -13,6 +13,9 @@ from infobserve.events.processed import ProcessedEvent
 #       when they fail, so the whole script hangs
 
 
+BLACKLIST_RULE = "BlacklistRule"
+
+
 class YaraProcessor:
     """
     Consumes Sources from the Processing queue, passes them through the
@@ -80,7 +83,7 @@ class YaraProcessor:
                         items_remaining = self._source_queue.events_left()
                         APP_LOGGER.info(
                             "Stop command received. Will stop %s",
-                            "immediately" if items_remaining == 0 else f"after processing {items_remaining} items")
+                            "immediately" if items_remaining == 0 else (f"after processing {items_remaining} items"))
                     self._cmd_queue.notify()
                 else:
                     items_processed += 1
@@ -88,6 +91,10 @@ class YaraProcessor:
                     matches = self._engine.match(data=event.raw_content)
 
                     if matches:
+                        for match in matches:
+                            # If the blacklist rule has matched as well, we ignore the entire event
+                            if match.rules == BLACKLIST_RULE:
+                                continue
                         await self._db_queue.queue_event(ProcessedEvent(event, matches))
 
                     self._source_queue.notify()
