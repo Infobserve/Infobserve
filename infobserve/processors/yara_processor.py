@@ -231,7 +231,7 @@ class YaraProcessor:
             # If the blacklist rule has matched as well, we ignore the entire event
             if match.rule == BLACKLIST_RULE:
                 return True
-        return True
+        return False
 
     class _Command(Enum):
         RECOMPILE = 1
