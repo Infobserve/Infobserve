@@ -7,7 +7,7 @@ import yara
 
 from infobserve.common import APP_LOGGER
 from infobserve.common.queue import ProcessingQueue
-from infobserve.events.processed import ProcessedEvent
+from infobserve.events import ProcessedEvent
 
 # TODO: Add exception handlers. Async functions don't notify anyone
 #       when they fail, so the whole script hangs

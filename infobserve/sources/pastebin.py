@@ -1,6 +1,6 @@
 import asyncio
 from json.decoder import JSONDecodeError
-from typing import Dict, List
+from typing import List
 
 import aiohttp
 from pbwrap import AsyncPastebin, Paste  # type: ignore
@@ -8,7 +8,7 @@ from pbwrap import AsyncPastebin, Paste  # type: ignore
 from infobserve.common import APP_LOGGER
 from infobserve.common.index_cache import IndexCache
 from infobserve.common.queue import ProcessingQueue
-from infobserve.events.event import PasteEvent
+from infobserve.events import PasteEvent
 
 from .base import SourceBase
 
