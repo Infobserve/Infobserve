@@ -21,8 +21,8 @@ class BaseEvent(metaclass=ABCMeta):
             self.timestamp = timestamp
         else:
             self.timestamp = datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%SZ")
-
         self.source = source
+        self.raw_content = None
 
     @abstractmethod
     async def get_raw_content(self, session):
@@ -31,3 +31,13 @@ class BaseEvent(metaclass=ABCMeta):
         You can use it as a getter or implement logic to fetch the raw content.
         In case it is not provided from the source and a secondary request is required.
         """
+
+    def is_valid(self):
+        """Checks if the event has enough information to be processed.
+
+        Returns: (bool)
+        """
+        if not self.raw_url:
+            return False
+
+        return True

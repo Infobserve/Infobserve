@@ -1,5 +1,6 @@
 """The Source Entity SourceFactory use this to instantiate Source Entities"""
 from .gist import GistSource
+from .pastebin import PastebinSource
 
 
 class SourceFactory():
@@ -9,6 +10,7 @@ class SourceFactory():
         """Initializes the SourceFactory Object."""
         self._sources = dict()
         self.register_source("gist", GistSource)
+        self.register_source("pastebin", PastebinSource)
 
     def register_source(self, source_type, constructor):
         """Registers a Source Class into the SourceFactory.

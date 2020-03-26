@@ -32,16 +32,14 @@ class GistSource(SourceBase):
     """
 
     def __init__(self, config: Dict, name: str = None):
-        if name:
-            self.name: Optional[str] = name
-
+        SourceBase.__init__(self, name=name)
         self.SOURCE_TYPE: str = "gist"
         self._oauth_token: Optional[Any] = config.get('oauth')
         self._username: Optional[Any] = config.get('username')
         self._uri: str = "https://api.github.com/gists/public?"
         self._api_version: str = "application/vnd.github.v3+json"
         self._index_cache: IndexCache = IndexCache(self.SOURCE_TYPE)
-        self.timeout: float = config.get('timeout', 60)
+        self.timeout: Union[float] = config.get('timeout', 60)
 
     async def fetch_events(self) -> List[GistEvent]:
         """
@@ -51,7 +49,7 @@ class GistSource(SourceBase):
             event_list (list) : A list of GistEvent Objects.
         """
 
-        headers = {
+        headers: Dict = {
             "user-agent": 'Infobserver',
             "Accept": self._api_version,
             "Authorization": f'token {self._oauth_token}'

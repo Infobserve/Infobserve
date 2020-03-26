@@ -30,7 +30,6 @@ class GistEvent(BaseEvent):
         self.size = unpacked_files_key.get("size")
         self.filename = unpacked_files_key.get("filename")
         self.creator = raw_gist["owner"].get("login")
-        self.raw_content = None
 
     async def get_raw_content(self, session):
         """Retrieves the raw content of the gist.
@@ -66,13 +65,3 @@ class GistEvent(BaseEvent):
             if value:
                 return value
         return dict()
-
-    def is_valid(self):
-        """Checks if the event has enough information to be processed.
-
-        Returns: (bool)
-        """
-        if not self.raw_url:
-            return False
-
-        return True

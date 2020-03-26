@@ -26,3 +26,8 @@ The project started as a practice to build something beautiful with python altho
 * Create a dev environment configuration (docker-compose in the oven)
 * `poetry shell`
 * You are ready to hack it!
+
+### Docker-compose
+
+You can use the command below to run your code changes instantly:
+* `docker-compose build && docker-compose up`
