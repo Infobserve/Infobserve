@@ -1,30 +1,57 @@
 image: "python:3.8"
-
+cache:
+  paths:
+    - .venv/*
 before_script:
-  - python --version
-  - pip install -r requirements.txt
+  - pip install poetry
+  - poetry config virtualenvs.in-project true
+  - poetry install
 
 stages:
   - Static Analysis
+  - Testing
 
 pylint:
   stage: Static Analysis
   script:
-    - pylint -r yes --exit-zero infobserve/
+    - source .venv/bin/activate
+    - pylint -r yes --exit-zero infobserve/ | tee pylint-report.txt
+  artifacts:
+    paths:
+      - pylint-report.txt
   only:
     - merge_requests
 
 mypy:
   stage: Static Analysis
   script:
-    - mypy infobserve/
+    - source .venv/bin/activate
+    - mypy infobserve/ | tee mypy-report.txt
+  artifacts:
+    paths:
+      - mypy-report.txt
   only:
     - merge_requests
 
 cyclic-complexity:
   stage: Static Analysis
   script:
-    - radon cc -s -n B infobserve/
-    - radon mi -s -n B infobserve/
+    - source .venv/bin/activate
+    - radon cc -s -n B infobserve/ | tee code-metrics.txt
+    - radon mi -s -n B infobserve/ | tee code-metrics.txt
+  artifacts:
+    paths:
+      - code-metrics.txt
+  only:
+    - merge_requests
+
+unit-testing:
+  stage: Testing
+  script:
+    - source .venv/bin/activate
+    - coverage run --source=infobserve/ -m pytest && coverage report -m | tee coverage.txt
+  artifacts:
+    paths:
+      - coverage.txt
   only:
     - merge_requests

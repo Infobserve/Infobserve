@@ -11,7 +11,7 @@ poetry.lock
 .mypy_cache
 # Pytest Stuff
 .pytest_cache/
-
+.coverage
 # Test Config
 config.yaml
 
