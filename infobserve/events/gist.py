@@ -41,7 +41,7 @@ class GistEvent(BaseEvent):
             raw_content (string): The content of the gist.
         """
         try:
-            async with await session.get(self.raw_url) as response:
+            async with session.get(self.raw_url) as response:
                 try:
                     self.raw_content = await response.text()
                 except UnicodeDecodeError:
