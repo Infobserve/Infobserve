@@ -46,7 +46,6 @@ class PastebinSource(SourceBase):
             if self._index_cache:
                 await self._index_cache.update_index_cache([x.key for x in pastes])
 
-        event_list = [x for x in event_list if x.raw_content]
         await asyncio.gather(*tasks)  # Fetch the raw content async
         event_list = [x for x in event_list if x.raw_content]
 

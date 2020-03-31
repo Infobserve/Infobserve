@@ -37,8 +37,8 @@ cyclic-complexity:
   stage: Static Analysis
   script:
     - source .venv/bin/activate
-    - radon cc -s -n B infobserve/ | tee code-metrics.txt
-    - radon mi -s -n B infobserve/ | tee code-metrics.txt
+    - radon cc -s -n B infobserve/ | tee -a code-metrics.txt
+    - radon mi -s -n B infobserve/ | tee -a code-metrics.txt
   artifacts:
     paths:
       - code-metrics.txt
