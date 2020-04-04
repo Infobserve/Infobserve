@@ -8,5 +8,7 @@ tests
 config.example.yaml
 Dockerfile
 README.md
+.coverage
+coverage.xml
 //*.pyc
 //__pycache__

@@ -1,7 +1,5 @@
-.venv/
-.vscode/
-
 # Python Stuff
+.venv/
 .egg-info/
 infobserve.egg-info/
 pip-wheel-metadata/
@@ -13,9 +11,9 @@ poetry.lock
 # Pytest Stuff
 .pytest_cache/
 .coverage
+coverage.xml
 # Test Config
 config.yaml
-
 # IDEs/Editors
 .idea
 .vscode

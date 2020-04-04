@@ -37,8 +37,10 @@ class Match():
     def _create_ascii_matches(strings):
         """Construct the list of AsciiMatch objects.
 
+        The strings return from the yara.Match object are a list of tuples with the following values
+        (line, 'string identifier eg '$a', 'actual string').
         Arguments:
-            strings (list(str)): A list of the strings that matched.
+            strings (list(str)): A list of the strings matches from the yara.Match object.
 
         Returns:
             ascii_matches (list(infobserve.matches.AsciiMatches)): A list of the AsciiMatches objects.
