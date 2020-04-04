@@ -24,7 +24,7 @@ class PasteEvent(BaseEvent):
         BaseEvent.__init__(self, datetime.fromtimestamp(int(paste.date)), source="pastebin")
 
         self.id = paste.key
-        self.raw_url = "https://pastebin.com/raw/" + self.id
+        self.raw_url = paste.scrape_url
         self.size = paste.size
         self.filename = paste.title
         self.creator = "Anonymous"
@@ -43,5 +43,5 @@ class PasteEvent(BaseEvent):
         try:
             self.raw_content = self.paste.scrape_raw_text()
         except UnicodeDecodeError:
-            return self.raw_content
+            return None
         return self.raw_content

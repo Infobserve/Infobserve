@@ -21,6 +21,8 @@ mypy = "^0.761"
 plyara = "^2.0"
 mccabe = "^0.6.1"
 radon = "^4.1"
+pytest-asyncio = "^0.10.0"
+aioresponses = "^0.6.3"
 coverage = "^5.0.4"
 
 [build-system]
