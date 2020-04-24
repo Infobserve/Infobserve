@@ -79,4 +79,8 @@ class Config():
                     print("Duplicate Table Error Raised the sql init script failed.")
 
 
+class MissingOptionError(Exception):
+    pass
+
+
 CONFIG = Config(CLI_ARGS.get_argument("config"))

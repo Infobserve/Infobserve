@@ -35,11 +35,9 @@ def main():
 
     APP_LOGGER.info("Logging up and running")
     source_queue = ProcessingQueue(CONFIG.PROCESSING_QUEUE_SIZE)
-    # TODO: Add DB queue size option in the config?
+
     db_queue = ProcessingQueue()
     sources_scheduler = SourceScheduler(source_queue, sources=CONFIG.SOURCES)
-
-    # Initialize Yara Processing queue
 
     main_loop = asyncio.get_event_loop()
 

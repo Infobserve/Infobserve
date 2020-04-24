@@ -33,3 +33,12 @@ You can use the command below to run your code changes instantly:
 
 * `docker-compose build && docker-compose up`
 
+## Data sources
+
+### Gists
+
+### Pastebin
+
+### Gitlab
+
+For the gitlab source to work, a gitlab personal access token is required with at least the `read_user` and `read_repository` scopes enabled.

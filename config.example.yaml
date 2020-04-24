@@ -19,8 +19,13 @@ postgres:
   user: root
   password: root
 
-sources: # only gist source valid for now
+sources:
+  scrape_interval: 30 # Global scrape interval. Affects all sources
   gist:
-    scrape_interval: 60
+    scrape_interval: 60 # Overrides global scrape interval
     username: "redacted"
     oauth: "redacted"
+  gitlab:
+    scrape_interval: 60
+    host: self-hosted.gitlab.com
+    access_token: "redacted"
