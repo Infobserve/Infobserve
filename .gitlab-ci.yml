@@ -10,6 +10,7 @@ before_script:
 stages:
   - Static Analysis
   - Testing
+  - Sonarqube
 
 pylint:
   stage: Static Analysis
@@ -49,9 +50,66 @@ unit-testing:
   stage: Testing
   script:
     - source .venv/bin/activate
-    - coverage run --source=infobserve/ -m pytest && coverage report -m | tee coverage.txt
+    - coverage run --source=infobserve/ -m pytest && coverage xml > coverage.xml
+    - coverage report -m > coverage.txt
   artifacts:
     paths:
       - coverage.txt
+      - coverage.xml
   only:
     - merge_requests
+
+sonarqube_mr:
+  stage: Sonarqube
+  image:
+    name: sonarsource/sonar-scanner-cli:latest
+    entrypoint: [""]
+  variables:
+    GIT_DEPTH: 0
+  before_script:
+    - echo 0
+  script:
+    - sonar-scanner
+      -Dsonar.projectKey=Infobserve
+      -Dsonar.sources=infobserve
+      -Dsonar.tests=tests
+      -Dsonar.host.url=$SONAR_HOST_URL
+      -Dsonar.login=$SONAR_TOKEN
+      -Dsonar.pullrequest.branch=$CI_COMMIT_REF_NAME
+      -Dsonar.pullrequest.base=$CI_MERGE_REQUEST_TARGET_BRANCH_NAME
+      -Dsonar.pullrequest.key=$CI_MERGE_REQUEST_ID
+      -Dsonar.gitlab.project_id=$CI_PROJECT_PATH
+      -Dsonar.gitlab.commit_sha=$CI_COMMIT_SHA
+      -Dsonar.gitlab.ref_name=$CI_COMMIT_REF_NAME
+  dependencies:
+    - unit-testing
+  allow_failure: true
+  only:
+    - merge_requests
+  tags:
+    - homelab
+
+sonarqube_dev:
+  stage: Sonarqube
+  image:
+    name: sonarsource/sonar-scanner-cli:latest
+    entrypoint: [""]
+  variables:
+    GIT_DEPTH: 0
+  before_script:
+    - echo 0
+  script:
+    - sonar-scanner
+      -Dsonar.projectKey=Infobserve
+      -Dsonar.sources=infobserve
+      -Dsonar.tests=tests
+      -Dsonar.host.url=$SONAR_HOST_URL
+      -Dsonar.login=$SONAR_TOKEN
+      -Dsonar.branch.name=$CI_COMMIT_BRANCH
+  dependencies:
+    - unit-testing
+  allow_failure: true
+  only:
+    - develop
+  tags:
+    - homelab
