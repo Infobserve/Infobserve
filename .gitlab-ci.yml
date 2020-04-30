@@ -58,6 +58,7 @@ unit-testing:
       - coverage.xml
   only:
     - merge_requests
+    - develop
 
 sonarqube_mr:
   stage: Sonarqube
