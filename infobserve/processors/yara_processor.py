@@ -7,7 +7,7 @@ import yara
 
 from infobserve.common import APP_LOGGER
 from infobserve.common.queue import ProcessingQueue
-from infobserve.events import ProcessedEvent
+from infobserve.events import ProcessedEvent, GithubEvent
 
 # TODO: Add exception handlers. Async functions don't notify anyone
 #       when they fail, so the whole script hangs
@@ -84,6 +84,17 @@ class YaraProcessor:
                             "Stop command received. Will stop %s", "immediately" if items_remaining == 0 else
                             (f"after processing {items_remaining} items"))
                     self._cmd_queue.notify()
+                elif isinstance(event, GithubEvent):
+                    items_processed += 1
+                    APP_LOGGER.debug("Processing event: %s", event.id)
+
+                    for git_event in event.commit_raw_content():
+                        if git_event:
+                            matches = self._engine.match(data=git_event.raw_content)
+                            if matches:
+                                if not self._has_blacklist(matches):
+                                    await self._db_queue.queue_event(ProcessedEvent(git_event, matches))
+                    self._source_queue.notify()
                 else:
                     items_processed += 1
 

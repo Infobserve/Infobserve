@@ -1,6 +1,7 @@
 """The Source Entity SourceFactory use this to instantiate Source Entities"""
 from .gist import GistSource
 from .pastebin import PastebinSource
+from .github import GithubSource
 
 
 class SourceFactory():
@@ -11,6 +12,7 @@ class SourceFactory():
         self._sources = dict()
         self.register_source("gist", GistSource)
         self.register_source("pastebin", PastebinSource)
+        self.register_source("github-public-events", GithubSource)
 
     def register_source(self, source_type, constructor):
         """Registers a Source Class into the SourceFactory.
