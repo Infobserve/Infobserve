@@ -76,9 +76,9 @@ sonarqube_mr:
       -Dsonar.tests=tests
       -Dsonar.host.url=$SONAR_HOST_URL
       -Dsonar.login=$SONAR_TOKEN
-      -Dsonar.pullrequest.branch=$CI_COMMIT_REF_NAME
+      -Dsonar.pullrequest.branch=$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
       -Dsonar.pullrequest.base=$CI_MERGE_REQUEST_TARGET_BRANCH_NAME
-      -Dsonar.pullrequest.key=$CI_MERGE_REQUEST_ID
+      -Dsonar.pullrequest.key=$CI_MERGE_REQUEST_IID
       -Dsonar.gitlab.project_id=$CI_PROJECT_PATH
       -Dsonar.gitlab.commit_sha=$CI_COMMIT_SHA
       -Dsonar.gitlab.ref_name=$CI_COMMIT_REF_NAME
