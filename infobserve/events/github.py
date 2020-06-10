@@ -1,5 +1,8 @@
 """The implementation of the GistEvent Class."""
 import asyncio
+from os import path
+
+from infobserve.common import APP_LOGGER
 
 from .base import BaseEvent
 
@@ -85,11 +88,21 @@ class Commit():
 
     async def get_raw_content(self):
         for raw_url in self.files_raw_url:
-            try:
-                async with self.session.get(raw_url[0]) as response:
-                    try:
-                        self.files_raw_data.append((await response.text(), raw_url[1]))
-                    except UnicodeDecodeError:
-                        pass
-            except asyncio.TimeoutError:
-                pass
+            if not self.file_ext_blacklist(raw_url[1]):
+                try:
+                    async with self.session.get(raw_url[0]) as response:
+                        try:
+                            self.files_raw_data.append((await response.text(), raw_url[1]))
+                        except UnicodeDecodeError:
+                            pass
+                except (asyncio.TimeoutError, TypeError):
+                    APP_LOGGER.warning("Dropped raw url: %s filename: %s", raw_url[0], raw_url[1])
+
+    @staticmethod
+    def file_ext_blacklist(filename):
+        blacklist = [".jpg", ".gif", ".psd", ".pdf", ".jpeg", ".png", ".webp"]
+
+        if path.splitext(filename)[1] in blacklist:
+            return True
+
+        return False

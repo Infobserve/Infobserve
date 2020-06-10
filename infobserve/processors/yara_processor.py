@@ -91,18 +91,16 @@ class YaraProcessor:
                     for git_event in event.commit_raw_content():
                         if git_event:
                             matches = self._engine.match(data=git_event.raw_content)
-                            if matches:
-                                if not self._has_blacklist(matches):
-                                    await self._db_queue.queue_event(ProcessedEvent(git_event, matches))
+                            if matches and not self._has_blacklist(matches):
+                                await self._db_queue.queue_event(ProcessedEvent(git_event, matches))
                     self._source_queue.notify()
                 else:
                     items_processed += 1
 
                     matches = self._engine.match(data=event.raw_content)
 
-                    if matches:
-                        if not self._has_blacklist(matches):
-                            await self._db_queue.queue_event(ProcessedEvent(event, matches))
+                    if matches and not self._has_blacklist(matches):
+                        await self._db_queue.queue_event(ProcessedEvent(event, matches))
 
                     self._source_queue.notify()
 
