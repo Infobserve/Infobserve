@@ -9,7 +9,7 @@ rule HashicorpVaultAccessTokenRule
         test_match_1 = "s.OZZFOsivUeOMeDyFtRz7cOmE"
 
     strings:
-        $ = /s.[0-9A-Za-z]{24}/ fullword
+        $ = /\bs.[0-9A-Za-z]{24}\b/ fullword
 
     condition:
         any of them
