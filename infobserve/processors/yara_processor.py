@@ -223,7 +223,8 @@ class YaraProcessor:
                 yield filepath.as_posix()
             else:
                 for inner_file in Path().glob(rule_file):
-                    yield inner_file.as_posix()
+                    if inner_file.is_file():
+                        yield inner_file.as_posix()
 
     @staticmethod
     def _has_blacklist(matches):
