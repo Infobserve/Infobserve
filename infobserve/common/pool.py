@@ -1,7 +1,8 @@
 """ Singleton Connection Pool for Postgresql """
-from typing import Dict
 
-import asyncpg  # type: ignore
+import asyncpg
+import aioredis
+from .exceptions import UnitializedRedisConnectionPool
 
 
 class Singleton(type):
@@ -14,6 +15,7 @@ class Singleton(type):
 
 
 class PgPool(metaclass=Singleton):
+    pool = None
 
     async def init_db_pool(self, db):
         """Initialize the database connection pool.
@@ -29,3 +31,24 @@ class PgPool(metaclass=Singleton):
             (asyncpg.connection.Connection): A Connection instance.
         """
         return self.pool.acquire()
+
+
+class RedisConnectionPool(metaclass=Singleton):
+    redis = None
+
+    async def init_redis_pool(self, redis):
+        """Initialize Redis connection pool.
+        Arguments:
+            redis (dict): A dict with kwargs to initialize the connection pool.
+        """
+        self.redis: aioredis.RedisPool = await aioredis.create_pool((redis["host"], redis["port"]))
+
+    async def acquire(self):
+        """
+        Returns:
+            (aioredis.)
+        """
+        if self.redis:
+            return self.redis
+
+        raise UnitializedRedisConnectionPool()

@@ -12,6 +12,13 @@ services:
     ports:
       - "5432:5432"
 
+  redis:
+    image: redis:6
+    networks:
+      - infobserve
+    ports:
+      - "6379:6379"
+
   infobserve:
     build: .
     networks:

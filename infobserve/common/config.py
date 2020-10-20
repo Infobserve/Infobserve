@@ -3,7 +3,7 @@ import asyncpg  # type: ignore
 import yaml
 
 from .cli_parser import CLI_ARGS
-from .pool import PgPool
+from .pool import PgPool, RedisConnectionPool
 
 
 class Config():
@@ -16,7 +16,7 @@ class Config():
         PROCESSING_QUEUE_SIZE (int): The max size the processing queue can reach.
         LOGGING_LEVEL (str): The minimum level the logger will emmit messages.
         SOURCES (dict): A dictionary of dictionaries with the configuration of each source.
-        _db_config (dict): A connection pool for the postgresql db server.
+        DB_CONFIG (dict): A connection pool for the postgresql db server.
     """
 
     def __init__(self, config_file="config.yaml"):
@@ -42,11 +42,9 @@ class Config():
         self.YARA_EXTERNAL_VARS = yaml_file.get("yara_external_vars", None)
         self.PROCESSING_QUEUE_SIZE = yaml_file.get("processing_queue_size", 0)
         self.LOGGING_LEVEL = yaml_file.get("log_level", "DEBUG")
-        self._db_config = yaml_file.get("postgres")
-        # Think of a way to express this in more elegant and dynamic fashion
-        # Factory Pattern for the Sources for easy extendability.
-        # Sources should not be instantiated in Configuration.
-        # Make a factory method!!! ( I am talking to me )
+        self.DB_CONFIG = yaml_file.get("postgres")
+        self.REDIS_CONFIG = yaml_file.get("redis", None)
+
         if yaml_file.get("sources"):
             self.SOURCES = self._source_configs(yaml_file.get("sources"))
 
@@ -67,7 +65,7 @@ class Config():
         """
 
         pg_pool = PgPool()
-        await pg_pool.init_db_pool(self._db_config)
+        await pg_pool.init_db_pool(self.DB_CONFIG)
 
         async with pg_pool.acquire() as conn:
             with open("infobserve-schema.sql") as init_script:
@@ -77,6 +75,11 @@ class Config():
                 # The init script should move to schema level and so does this error.
                 except asyncpg.exceptions.DuplicateTableError:
                     print("Duplicate Table Error Raised the sql init script failed.")
+
+    async def init_redis_pool(self):
+        if self.REDIS_CONFIG:
+            redis_pool = RedisConnectionPool()
+            await redis_pool.init_redis_pool(self.REDIS_CONFIG)
 
 
 CONFIG = Config(CLI_ARGS.get_argument("config"))

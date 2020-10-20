@@ -41,7 +41,7 @@ class YaraProcessor:
 
         self._source_queue = source_queue
         self._db_queue = db_queue
-        self._cmd_queue = ProcessingQueue()
+        self._cmd_queue = ProcessingQueue("commands")  # Ok just to shut the runtime up obvisously it's gonna be removed
         self._ext_vars = ext_vars
 
         # Generate rules along with their namespaces
@@ -65,7 +65,7 @@ class YaraProcessor:
         items_remaining = sys.maxsize
         items_processed = 0
         while items_processed < items_remaining:
-            remaining = [self._source_queue.get_event(), self._cmd_queue.get_event()]
+            remaining = [self._source_queue.get_event()]
             completed_tasks, _ = await asyncio.wait(remaining, return_when=asyncio.FIRST_COMPLETED)
             for completed_task in completed_tasks:
                 event = await completed_task
