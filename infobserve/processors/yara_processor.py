@@ -1,13 +1,11 @@
-import asyncio
 import sys
 from enum import Enum
 from pathlib import Path
 
 import yara
-
 from infobserve.common import APP_LOGGER
 from infobserve.common.queue import ProcessingQueue
-from infobserve.events import ProcessedEvent, GithubEvent
+from infobserve.events import ProcessedEvent
 
 # TODO: Add exception handlers. Async functions don't notify anyone
 #       when they fail, so the whole script hangs
@@ -39,9 +37,8 @@ class YaraProcessor:
         self._processing = False
         self._rules = {}
 
-        self._source_queue = source_queue
-        self._db_queue = db_queue
-        self._cmd_queue = ProcessingQueue("commands")  # Ok just to shut the runtime up obvisously it's gonna be removed
+        self._source_queue: ProcessingQueue = source_queue
+        self._db_queue: ProcessingQueue = db_queue
         self._ext_vars = ext_vars
 
         # Generate rules along with their namespaces
@@ -53,45 +50,24 @@ class YaraProcessor:
         The consumer function for the source queue.
         Removes Sources from the Processing Queue, tries to match them
         against the provided Yara rules. Places any matches into the Database
-        Queue for further processing and storage (TBI - Right now, it simply
-        logs matches)
+        Queue(_db_queue)
         """
         APP_LOGGER.info("Processing started. (Using Yara Engine)")
         self._processing = True
 
         # A (practically) infinite amount of items will be processed
-        # unless a STOP command is received, in which case, any remaining items will be
-        # processed and then processing will stop
         items_remaining = sys.maxsize
         items_processed = 0
         while items_processed < items_remaining:
-            remaining = [self._source_queue.get_event()]
-            completed_tasks, _ = await asyncio.wait(remaining, return_when=asyncio.FIRST_COMPLETED)
-            for completed_task in completed_tasks:
-                event = await completed_task
+            event = await self._source_queue.get_event()
 
-                if isinstance(event, YaraProcessor._Command):
-                    if event == YaraProcessor._Command.RECOMPILE:
-                        APP_LOGGER.info("Recompile command received")
-                        self._processing = False
-                        await self.compile_rules()
-                        self._processing = True
-                    elif event == YaraProcessor._Command.STOP:
-                        # When a STOP command is received, all remaining items in the queue will be processed
-                        # and then processing will stop
-                        items_remaining = self._source_queue.events_left()
-                        APP_LOGGER.info(
-                            "Stop command received. Will stop %s", "immediately" if items_remaining == 0 else
-                            (f"after processing {items_remaining} items"))
-                    self._cmd_queue.notify()
-                else:
-                    items_processed += 1
-                    matches = self._engine.match(data=event.raw_content)
+            items_processed += 1
+            matches = self._engine.match(data=event.raw_content)
 
-                    if matches and not self._has_blacklist(matches):
-                        await self._db_queue.queue_event(ProcessedEvent(event, matches))
+            if matches and not self._has_blacklist(matches):
+                await self._db_queue.queue_event(ProcessedEvent(event, matches))
 
-                    self._source_queue.notify()
+            self._source_queue.notify()
 
     async def add_rules(self, rule_files, append=True, recompile=False):
         """
