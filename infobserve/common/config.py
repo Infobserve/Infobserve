@@ -44,6 +44,8 @@ class Config():
         self.LOGGING_LEVEL = yaml_file.get("log_level", "DEBUG")
         self.DB_CONFIG = yaml_file.get("postgres")
         self.REDIS_CONFIG = yaml_file.get("redis", None)
+        self.STORE_PROCESSED_EVENTS = yaml_file.get("store_processed", False)
+        self.STORE_PROCESSED_PATH = yaml_file.get("store_processed_path", "processed-events.csv")
 
         if yaml_file.get("sources"):
             self.SOURCES = self._source_configs(yaml_file.get("sources"))

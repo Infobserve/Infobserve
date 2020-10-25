@@ -1,5 +1,6 @@
 """This module contains the ProcessedEvent class definition."""
 from datetime import datetime
+from typing import List
 
 from infobserve.matches import Match
 
@@ -18,7 +19,7 @@ class ProcessedEvent(BaseEvent):
         matches (list(infobserve.matches.Match)): A list of the matches that fired up the YaraRules.
     """
 
-    def __init__(self, unprocessed, matches):
+    def __init__(self, unprocessed, matches=None):
         """The constructor.
 
         Arguments:
@@ -26,12 +27,12 @@ class ProcessedEvent(BaseEvent):
             matches (yara.Match): All the matches that triggered Yara Rules.
         """
         super().__init__(unprocessed.timestamp, source=unprocessed.source)
-        self.event_id = None
-        self.raw_content = unprocessed.raw_content
-        self.filename = unprocessed.filename
-        self.creator = unprocessed.creator
-        self.time_discovered = datetime.now()
-        self.matches = ProcessedEvent._build_matches(matches)
+        self.event_id: str = None
+        self.raw_content: str = unprocessed.raw_content
+        self.filename: str = unprocessed.filename
+        self.creator: str = unprocessed.creator
+        self.time_discovered: datetime = datetime.now()
+        self.matches: List[Match] = ProcessedEvent._build_matches(matches) if matches else []
 
     def set_event_id(self, event_id):
         """Setter method for the event_id.
@@ -44,7 +45,7 @@ class ProcessedEvent(BaseEvent):
         for match in self.matches:
             match.event_id = event_id
 
-    def get_rule_files(self):
+    def get_rules_matched(self) -> List[str]:
         """
         Returns a list of unique rules that matched in that event
         """

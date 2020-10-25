@@ -3,7 +3,7 @@ from json.decoder import JSONDecodeError
 from typing import List
 
 import aiohttp
-from pbwrap import AsyncPastebin, Paste  # type: ignore
+from pbwrap import Pastebin, Paste  # type: ignore
 
 from infobserve.common import APP_LOGGER
 from infobserve.common.index_cache import IndexCache
@@ -20,7 +20,7 @@ class PastebinSource(SourceBase):
     def __init__(self, config, name: str = None):
         SourceBase.__init__(self, name=name)
         self.SOURCE_TYPE: str = "pastebin"
-        self.pastebin: AsyncPastebin = AsyncPastebin(dev_key=config.get("dev_key"))
+        self.pastebin: Pastebin = Pastebin(api_dev_key=config.get("dev_key"))
         self.timeout: float = float(config.get("timeout"))
         self._index_cache: IndexCache = IndexCache(self.SOURCE_TYPE)
 

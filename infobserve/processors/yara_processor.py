@@ -3,9 +3,10 @@ from enum import Enum
 from pathlib import Path
 
 import yara
-from infobserve.common import APP_LOGGER
+from infobserve.common import APP_LOGGER, CONFIG
 from infobserve.common.queue import ProcessingQueue
 from infobserve.events import ProcessedEvent
+from infobserve.loaders.csv_loader import CsvLoader
 
 # TODO: Add exception handlers. Async functions don't notify anyone
 #       when they fail, so the whole script hangs
@@ -55,17 +56,28 @@ class YaraProcessor:
         APP_LOGGER.info("Processing started. (Using Yara Engine)")
         self._processing = True
 
+        if CONFIG.STORE_PROCESSED_EVENTS:
+            APP_LOGGER.info("Storing all raw events in csv option is enabled for processing")
+            csv_loader = CsvLoader(CONFIG.STORE_PROCESSED_PATH)
+        else:
+            csv_loader = None
+
         # A (practically) infinite amount of items will be processed
         items_remaining = sys.maxsize
         items_processed = 0
         while items_processed < items_remaining:
             event = await self._source_queue.get_event()
-
             items_processed += 1
             matches = self._engine.match(data=event.raw_content)
 
             if matches and not self._has_blacklist(matches):
-                await self._db_queue.queue_event(ProcessedEvent(event, matches))
+                processed = ProcessedEvent(event, matches)
+                await self._db_queue.queue_event(processed)
+
+                if csv_loader:
+                    csv_loader.write_event(processed)
+            elif csv_loader:
+                csv_loader.write_event(ProcessedEvent(event))
 
             self._source_queue.notify()
 

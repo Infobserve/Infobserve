@@ -43,7 +43,7 @@ class PgLoader():
                     await self._insert_ascii_match(ascii_match)
 
             APP_LOGGER.debug("Inserted event from %s source. Rule files matched: %s", processed_event.source,
-                             ", ".join(processed_event.get_rule_files()))
+                             ", ".join(processed_event.get_rules_matched()))
 
     @staticmethod
     async def _insert_event(processed_event):

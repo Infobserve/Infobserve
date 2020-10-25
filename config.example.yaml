@@ -19,6 +19,10 @@ postgres:
   user: root
   password: root
 
+redis:
+  host: localhost
+  port: 6379
+
 sources: # only gist source valid for now
   gist:
     scrape_interval: 60

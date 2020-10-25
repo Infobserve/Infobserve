@@ -31,6 +31,6 @@ def test_set_event_id(processed_event):
     assert processed_event.event_id == 1
 
 
-def test_get_rule_files(processed_event):
-    rules = processed_event.get_rule_files()
+def test_get_rules_matched(processed_event):
+    rules = processed_event.get_rules_matched()
     assert rules == ["Example Rule"]
