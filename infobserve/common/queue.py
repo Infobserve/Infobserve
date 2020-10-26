@@ -4,7 +4,7 @@ import pickle
 from aioredis import Redis
 
 from .logger import APP_LOGGER
-from .pool import RedisConnectionPool
+from .pools import RedisConnectionPool
 
 
 class ProcessingQueue:
@@ -93,11 +93,13 @@ class ProcessingQueue:
         has been called.
         """
         if self.type == self.REDIS_QUEUE:
-            pass
+            with await self.__queue.redis as conn:
+                redis = Redis(conn)
+                return await redis.llen(self.name)
         else:
             await self.__queue.join()
 
-    def events_left(self):
+    async def events_left(self):
         """
         Returns:
             The Event objects that have not yet been processed by the queue.
@@ -113,6 +115,6 @@ class ProcessingQueue:
             The max size of the queue (as defined in the constructor)
         """
         if self.type == self.REDIS_QUEUE:
-            pass
+            return 0
         else:
             return self.__queue.maxsize

@@ -50,7 +50,6 @@ class YaraProcessor:
         The consumer function for the source queue.
         Removes Sources from the Processing Queue, tries to match them
         against the provided Yara rules. Places any matches into the Database
-        Queue(_db_queue)
         """
         APP_LOGGER.info("Processing started. (Using Yara Engine)")
         self._processing = True
@@ -156,7 +155,7 @@ class YaraProcessor:
         if not immediately:
             await self._cmd_queue.queue_event(YaraProcessor._Command.STOP)
         else:
-            for _ in range(self._source_queue.events_left()):
+            for _ in range(await self._source_queue.events_left()):
                 # Drop all current items
                 await self._source_queue.get()
                 self._source_queue.notify()

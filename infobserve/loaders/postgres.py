@@ -1,6 +1,6 @@
 """ This module contains the PgLoader class."""
 from infobserve.common import APP_LOGGER
-from infobserve.common.pool import PgPool
+from infobserve.common.pools import PgPool
 
 
 class PgLoader():
@@ -8,7 +8,7 @@ class PgLoader():
 
     Attributes:
         _processing (boolean): Indicates if the PgLoader instance consumes a Queue.
-        pool (infobserve.common.pool.Pool): The pool that connections will be acquired.
+        pool (infobserve.common.pools.PgPool): The pool that connections will be acquired.
         consume_queue (infobserve.common.queue.ProcessingQueue): The queue ProcessedEvent object will be consumed from.
     """
 

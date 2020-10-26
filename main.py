@@ -3,6 +3,7 @@
 import asyncio
 
 from infobserve.common import APP_LOGGER, CONFIG
+from infobserve.common.pools import RedisConnectionPool, PgPool
 from infobserve.common.queue import ProcessingQueue
 from infobserve.loaders.postgres import PgLoader
 from infobserve.processors.yara_processor import YaraProcessor
@@ -34,11 +35,16 @@ def consumer_scheduler(loop, source_queue, db_queue):
 def main():
     # Initialize Yara Processing queue
     main_loop = asyncio.get_event_loop()
-    main_loop.run_until_complete(CONFIG.init_db())
-    main_loop.run_until_complete(CONFIG.init_redis_pool())
-    APP_LOGGER.info("Initialized Schema")
 
-    APP_LOGGER.info("Logging up and running")
+    pg_pool = PgPool()
+    main_loop.run_until_complete(pg_pool.init_db())
+
+    if CONFIG.REDIS_CONFIG:
+        redis_pool = RedisConnectionPool()
+        main_loop.run_until_complete(redis_pool.init_redis_pool())
+    else:
+        APP_LOGGER.warning("No Redis Connection Configured falling back to simple Asyncio Queues")
+
     source_queue = ProcessingQueue("raw_events", CONFIG.PROCESSING_QUEUE_SIZE)
     # TODO: Add DB queue size option in the config?
     db_queue = ProcessingQueue("processed_events")

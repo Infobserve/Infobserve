@@ -1,9 +1,7 @@
 """ Contains the config Config class """
-import asyncpg  # type: ignore
 import yaml
 
 from .cli_parser import CLI_ARGS
-from .pool import PgPool, RedisConnectionPool
 
 
 class Config():
@@ -59,27 +57,6 @@ class Config():
             list_sources.append(configs)
 
         return list_sources
-
-    async def init_db(self):
-        """Initialize the database schema.
-        """
-
-        pg_pool = PgPool()
-        await pg_pool.init_db_pool(self.DB_CONFIG)
-
-        async with pg_pool.acquire() as conn:
-            with open("infobserve-schema.sql") as init_script:
-                try:
-                    async with conn.transaction() as tr:
-                        await conn.execute(init_script.read())
-                # The init script should move to schema level and so does this error.
-                except asyncpg.exceptions.DuplicateTableError:
-                    print("Duplicate Table Error Raised the sql init script failed.")
-
-    async def init_redis_pool(self):
-        if self.REDIS_CONFIG:
-            redis_pool = RedisConnectionPool()
-            await redis_pool.init_redis_pool(self.REDIS_CONFIG)
 
 
 CONFIG = Config(CLI_ARGS.get_argument("config"))

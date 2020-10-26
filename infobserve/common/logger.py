@@ -40,3 +40,4 @@ class Logger():
 
 
 APP_LOGGER = Logger().get_logger()
+APP_LOGGER.info("Logging up and running")

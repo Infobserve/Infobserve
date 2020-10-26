@@ -1,6 +1,6 @@
 """ The IndexCache class implementation """
 from infobserve.common import APP_LOGGER
-from infobserve.common.pool import PgPool
+from infobserve.common.pools import PgPool
 
 
 class IndexCache():
