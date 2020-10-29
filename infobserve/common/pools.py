@@ -1,9 +1,11 @@
 """ Singleton Connection Pools for Postgresql and Redis """
 
-import asyncpg
+import sys
+
 import aioredis
-from .exceptions import UnitializedRedisConnectionPool
-from . import CONFIG, APP_LOGGER
+import asyncpg
+
+from . import APP_LOGGER, CONFIG
 
 
 class Singleton(type):
@@ -42,8 +44,10 @@ class PgPool(metaclass=Singleton):
                         await conn.execute(init_script.read())
                         APP_LOGGER.info("Initialized Schema")
                 # The init script should move to schema level and so does this error.
+                # To be refactored soon it's stupid to log this we should initialize the database
+                # And run the migrations normally.
                 except asyncpg.exceptions.DuplicateTableError:
-                    print("Duplicate Table Error Raised the sql init script failed.")
+                    APP_LOGGER.warning("Duplicate Table Error Raised the sql init script failed.")
 
 
 class RedisConnectionPool(metaclass=Singleton):
@@ -51,8 +55,9 @@ class RedisConnectionPool(metaclass=Singleton):
     async def init_redis_pool(self):
         """Initialize Redis connection pool.
         """
-        if CONFIG.REDIS_CONFIG:
+        try:
             self.redis: aioredis.RedisPool = await aioredis.create_pool(
                 (CONFIG.REDIS_CONFIG["host"], CONFIG.REDIS_CONFIG["port"]))
-        else:
-            raise UnitializedRedisConnectionPool()
+        except KeyError:
+            APP_LOGGER.error("Wrong configuration format for redis key in yaml")
+            sys.exit(1)

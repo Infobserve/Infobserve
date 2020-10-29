@@ -19,7 +19,7 @@ class ProcessingQueue:
             self.type = self.REDIS_QUEUE
             self.__queue = redis_pool
         else:
-            APP_LOGGER.warning("No redis configuration found initializing simple queue")
+            APP_LOGGER.info("No redis configuration found initializing simple queue")
             self.type = self.SIMPLE_QUEUE
             self.__queue = asyncio.Queue(max_queue_size)
 
@@ -86,18 +86,16 @@ class ProcessingQueue:
         else:
             self.__queue.task_done()
 
-    async def wait_all(self):
+    def wait_all(self):
         """
         Blocks execution until all inserted Events have been processed.
         An Event is considered to be processed *after* a call to `notify`
         has been called.
         """
         if self.type == self.REDIS_QUEUE:
-            with await self.__queue.redis as conn:
-                redis = Redis(conn)
-                return await redis.llen(self.name)
+            pass
         else:
-            await self.__queue.join()
+            self.__queue.join()
 
     async def events_left(self):
         """
@@ -105,9 +103,11 @@ class ProcessingQueue:
             The Event objects that have not yet been processed by the queue.
         """
         if self.type == self.REDIS_QUEUE:
-            pass
+            with await self.__queue.redis as conn:
+                redis = Redis(conn)
+                return await redis.llen(self.name)
         else:
-            return self.__queue.qsize()
+            return await self.__queue.qsize()
 
     def max_size(self):
         """
