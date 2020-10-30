@@ -1,10 +1,27 @@
 import asyncio
+import pickle
+
+from aioredis import Redis
+
+from .logger import APP_LOGGER
+from .pools import RedisConnectionPool
 
 
 class ProcessingQueue:
+    REDIS_QUEUE = "redis"
+    SIMPLE_QUEUE = "simple"
 
-    def __init__(self, max_queue_size=0):
-        self.__queue = asyncio.Queue(max_queue_size)
+    def __init__(self, name, max_queue_size=0):
+        self.name = name
+
+        redis_pool = RedisConnectionPool()
+        if redis_pool.redis:
+            self.type = self.REDIS_QUEUE
+            self.__queue = redis_pool
+        else:
+            APP_LOGGER.info("No redis configuration found initializing simple queue")
+            self.type = self.SIMPLE_QUEUE
+            self.__queue = asyncio.Queue(max_queue_size)
 
     async def queue_event(self, event, block=True):
         """
@@ -21,9 +38,13 @@ class ProcessingQueue:
             asyncio.QueueFull: If `block` is False and the queue is
                                 full
         """
-
-        put_method = self.__queue.put if block else self.__queue.put_nowait
-        await put_method(event)
+        if self.type == self.REDIS_QUEUE:
+            with await self.__queue.redis as conn:
+                redis = Redis(conn)
+                await redis.lpush(self.name, pickle.dumps(event))
+        else:
+            put_method = self.__queue.put if block else self.__queue.put_nowait
+            await put_method(event)
 
     async def get_event(self, block=True):
         """
@@ -40,6 +61,12 @@ class ProcessingQueue:
             asyncio.QueueEmpty: If `block` is False and the queue is empty
 
         """
+        if self.type == self.REDIS_QUEUE:
+            with await self.__queue.redis as conn:
+                redis = Redis(conn)
+                get_method = redis.brpop if block else redis.rpop
+                pickled_event = await get_method(self.name)
+                return pickle.loads(pickled_event[1])
 
         get_method = self.__queue.get if block else self.__queue.get_nowait
         return await get_method()
@@ -54,29 +81,40 @@ class ProcessingQueue:
             ValueError: If called more times than than there were items
                         placed in the processing queue
         """
+        if self.type == self.REDIS_QUEUE:
+            pass
+        else:
+            self.__queue.task_done()
 
-        self.__queue.task_done()
-
-    async def wait_all(self):
+    def wait_all(self):
         """
         Blocks execution until all inserted Events have been processed.
         An Event is considered to be processed *after* a call to `notify`
         has been called.
         """
+        if self.type == self.REDIS_QUEUE:
+            pass
+        else:
+            self.__queue.join()
 
-        await self.__queue.join()
-
-    def events_left(self):
+    async def events_left(self):
         """
         Returns:
             The Event objects that have not yet been processed by the queue.
         """
-
-        return self.__queue.qsize()
+        if self.type == self.REDIS_QUEUE:
+            with await self.__queue.redis as conn:
+                redis = Redis(conn)
+                return await redis.llen(self.name)
+        else:
+            return await self.__queue.qsize()
 
     def max_size(self):
         """
         Returns:
             The max size of the queue (as defined in the constructor)
         """
-        return self.__queue.maxsize
+        if self.type == self.REDIS_QUEUE:
+            return 0
+        else:
+            return self.__queue.maxsize
