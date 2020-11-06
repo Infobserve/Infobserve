@@ -2,6 +2,7 @@
 from .gist import GistSource
 from .pastebin import PastebinSource
 from .github import GithubSource
+from .csv import CsvSource
 
 
 class SourceFactory():
@@ -13,6 +14,7 @@ class SourceFactory():
         self.register_source("gist", GistSource)
         self.register_source("pastebin", PastebinSource)
         self.register_source("github-public-events", GithubSource)
+        self.register_source("csv", CsvSource)
 
     def register_source(self, source_type, constructor):
         """Registers a Source Class into the SourceFactory.

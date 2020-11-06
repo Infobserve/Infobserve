@@ -81,6 +81,29 @@ class YaraProcessor:
 
             self._source_queue.notify()
 
+    async def process2(self):
+        """
+        The consumer function for the source queue.
+        Removes Sources from the Processing Queue, tries to match them
+        against the provided Yara rules. Places any matches into the Database
+        Queue(_db_queue)
+        """
+        APP_LOGGER.info("Processing started. (Using Yara Engine)")
+        self._processing = True
+        processed = 0
+        while True:
+            event = await self._source_queue.get_event()
+            if not event:
+                break
+            matches = self._engine.match(data=event.raw_content)
+
+            if matches and not self._has_blacklist(matches):
+                processed = ProcessedEvent(event, matches)
+
+            processed += 1
+
+        APP_LOGGER.info("Processed:%s", processed)
+
     async def add_rules(self, rule_files, append=True, recompile=False):
         """
         Parses additional rules and stores them as a class attribute.

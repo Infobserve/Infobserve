@@ -7,6 +7,7 @@ from infobserve.common.queue import ProcessingQueue
 from infobserve.loaders.postgres import PgLoader
 from infobserve.processors.yara_processor import YaraProcessor
 from infobserve.schedulers.source import SourceScheduler
+from infobserve.sources.csv import CsvSource
 
 __version__ = '0.1.0'
 
@@ -52,5 +53,16 @@ def main():
     main_loop.run_forever()
 
 
+def main2():
+
+    source_queue = ProcessingQueue("raw_events", CONFIG.PROCESSING_QUEUE_SIZE)
+    db_queue = ProcessingQueue("processed_events")
+    producer = CsvSource(CONFIG.SOURCES[0]["path"])
+    consumer = YaraProcessor(CONFIG.YARA_RULES_PATHS, source_queue, db_queue)
+
+    asyncio.run(producer.fetch_events_scheduled(source_queue))
+    asyncio.run(consumer.process2())
+
+
 if __name__ == "__main__":
-    main()
+    main2()
