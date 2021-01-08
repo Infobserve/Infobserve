@@ -32,7 +32,7 @@ class GithubEvent(BaseEvent):
         self.commits = [Commit(x, session) for x in github_event["payload"]["commits"]]
         self.session = session
 
-    async def get_raw_content(self):
+    async def realize_raw_content(self):
         """Retrieves the raw content of all the commits in GithubEvent.
         """
         for commit in self.commits:
@@ -106,7 +106,7 @@ class CommitEvent(BaseEvent):
         self.raw_content: str = raw_content
         self.filename: str = filename
 
-    async def get_raw_content(self):
+    async def realize_raw_content(self):
         return self.raw_content
 
     def is_valid(self):

@@ -5,8 +5,7 @@ import aiohttp
 
 from infobserve.common import APP_LOGGER
 from infobserve.common.exceptions import BadCredentials
-from infobserve.common.index_cache import IndexCache
-from infobserve.common.queue import ProcessingQueue
+from infobserve.common.queue import RedisQueue
 from infobserve.events import GistEvent
 
 from .base import SourceBase
@@ -27,7 +26,6 @@ class GistSource(SourceBase):
         _username (string): The username of the user to authenticate.
         _uri (string): Gitlab's api uri.
         _api_version (string): Gitlab's api version.
-        _index_cache(infobserve.common.index_cache.IndexCache): IndexCache object to query the postgres cache
         _timeout(float): The frequency the gists endpoint is queried
     """
 
@@ -38,7 +36,6 @@ class GistSource(SourceBase):
         self._username: Optional[Any] = config.get('username')
         self._uri: str = "https://api.github.com/gists/public?"
         self._api_version: str = "application/vnd.github.v3+json"
-        self._index_cache: IndexCache = IndexCache(self.SOURCE_TYPE)
         self.timeout: Union[float] = config.get('timeout', 60)
 
     async def fetch_events(self) -> List[GistEvent]:
@@ -65,9 +62,6 @@ class GistSource(SourceBase):
                 raise BadCredentials("Could not authenticate against github API with the provided credentials")
 
             APP_LOGGER.debug("GistSource: %s Fetched Recent %s Gists", self.name, len(gists))
-            if self._index_cache:
-                cached_ids = await self._index_cache.query_index_cache()
-                gists = [x for x in gists if x["id"] not in cached_ids]
             APP_LOGGER.debug("Gists number not in cache: %s", len(gists))
 
             for gist in gists:
@@ -76,12 +70,9 @@ class GistSource(SourceBase):
 
                 if ge.is_valid():
                     event_list.append(ge)
-                    tasks.append(asyncio.create_task(ge.get_raw_content(session)))
+                    tasks.append(asyncio.create_task(ge.realize_raw_content(session)))
                 else:
                     APP_LOGGER.warning("Dropped event with id:%s url not valid", ge.id)
-            # Check the index_cache.
-            if self._index_cache:
-                await self._index_cache.update_index_cache([x["id"] for x in gists])
 
             # Fetch the raw content async.
             await asyncio.gather(*tasks)
@@ -90,7 +81,7 @@ class GistSource(SourceBase):
             APP_LOGGER.debug("%s GistEvents send for processing", len(gists))
             return event_list
 
-    async def fetch_events_scheduled(self, queue: ProcessingQueue):
+    async def fetch_events_scheduled(self, queue: RedisQueue):
         """
         Call the fetch_events method on a schedule.
 
@@ -101,7 +92,7 @@ class GistSource(SourceBase):
             try:
                 events: List[GistEvent] = await self.fetch_events()
                 for event in events:
-                    await queue.queue_event(event)
+                    await queue.queue_event(event.to_json())
             except aiohttp.client_exceptions.ClientPayloadError:
                 APP_LOGGER.warning("There was an error retrieving the payload will retry in next cycle.")
 

@@ -1,8 +1,9 @@
 '''Declare the base event class '''
+import json
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
 
-from infobserve.common import APP_LOGGER
+from infobserve.common.logger import APP_LOGGER
 
 
 class BaseEvent(metaclass=ABCMeta):
@@ -21,11 +22,13 @@ class BaseEvent(metaclass=ABCMeta):
             self.timestamp = timestamp
         else:
             self.timestamp = datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%SZ")
+
+        self.timestamp = self.timestamp.strftime(r"%Y/%m/%d-%H:%M:%S")
         self.source = source
         self.raw_content = None
 
     @abstractmethod
-    async def get_raw_content(self, session):
+    async def realize_raw_content(self, session):
         """Retrieve the raw content of the event.
 
         You can use it as a getter or implement logic to fetch the raw content.
@@ -41,3 +44,23 @@ class BaseEvent(metaclass=ABCMeta):
             return False
 
         return True
+
+    def to_json(self):
+        """Converts an Event object to a json string
+
+        Returns:
+            string: The json string representation of the object
+        """
+
+        j = {
+            'url': self.raw_url,
+            'size': self.size,
+            'source': self.source,
+            'raw_content': self.raw_content,
+            'filename': self.filename,
+            'creator': self.creator,
+            'created_at': self.timestamp,
+            'discovered_at': datetime.now().strftime(r"%Y/%m/%d-%H:%M:%S")
+        }
+
+        return json.dumps(j)

@@ -1,7 +1,6 @@
 from infobserve.common import APP_LOGGER
 from infobserve.sources.factory import SourceFactory
 
-
 class SourceScheduler():
     """Schedules the Sources in the event loop.
 

@@ -36,11 +36,7 @@ class Config():
             yaml_file = dict()
 
         self.GLOBAL_SCRAPE_INTERVAL = yaml_file.get("global_scrape_interval", 60)  # In Seconds
-        self.YARA_RULES_PATHS = yaml_file.get("yara_rules_paths", "yara/*.yar")
-        self.YARA_EXTERNAL_VARS = yaml_file.get("yara_external_vars", None)
-        self.PROCESSING_QUEUE_SIZE = yaml_file.get("processing_queue_size", 0)
         self.LOGGING_LEVEL = yaml_file.get("log_level", "DEBUG")
-        self.DB_CONFIG = yaml_file.get("postgres")
         self.REDIS_CONFIG = yaml_file.get("redis", None)
 
         if yaml_file.get("sources"):

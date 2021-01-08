@@ -2,7 +2,7 @@
 import asyncio
 
 from .base import BaseEvent
-
+from infobserve.common.exceptions import RawContentException
 
 class GistEvent(BaseEvent):
     """The Events created from recent gists.
@@ -31,7 +31,7 @@ class GistEvent(BaseEvent):
         self.filename = unpacked_files_key.get("filename")
         self.creator = raw_gist["owner"].get("login")
 
-    async def get_raw_content(self, session):
+    async def realize_raw_content(self, session):
         """Retrieves the raw content of the gist.
 
         Arguments:
@@ -45,10 +45,10 @@ class GistEvent(BaseEvent):
                 try:
                     self.raw_content = await response.text()
                 except UnicodeDecodeError:
-                    return None
-            return self.raw_content
+                    self.raw_content = ""
         except asyncio.TimeoutError:
-            return None
+            self.raw_content = ""
+
 
     @staticmethod
     def _unpack(nested_dict):

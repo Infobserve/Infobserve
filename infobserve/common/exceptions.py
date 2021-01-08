@@ -9,3 +9,6 @@ class BadCredentials(Exception):
 
 class UnitializedRedisConnectionPool(Exception):
     pass
+
+class RawContentException(Exception):
+    pass

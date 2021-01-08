@@ -31,7 +31,7 @@ class PasteEvent(BaseEvent):
         self.raw_content = None
         self.paste = paste
 
-    async def get_raw_content(self):
+    async def realize_raw_content(self):
         """Retrieves the raw content of the gist.
 
         Arguments:

@@ -4,8 +4,7 @@ from typing import Any, Dict, List, Optional, Union
 import aiohttp
 
 from infobserve.common import APP_LOGGER
-from infobserve.common.index_cache import IndexCache
-from infobserve.common.queue import ProcessingQueue
+from infobserve.common.queue import RedisQueue
 from infobserve.events import GithubEvent
 
 from .base import SourceBase
@@ -38,7 +37,6 @@ class GithubSource(SourceBase):
         self._oauth_token: Optional[Any] = config.get('oauth')
         self._username: Optional[Any] = config.get('username')
         self._uri: str = "https://api.github.com/events"
-        self._index_cache: IndexCache = IndexCache(self.SOURCE_TYPE)
         self.timeout: Union[float] = config.get('timeout', 60)
         self._etag: Optional[Any] = None
 
@@ -65,13 +63,7 @@ class GithubSource(SourceBase):
 
             APP_LOGGER.debug("GithubSource: %s Fetched Recent %s Public Events", self.name, len(github_events))
 
-            if self._index_cache:
-                cached_ids = await self._index_cache.query_index_cache()
-                # At the moment only PushEvent support we should productize more logic into helper classes
-                # To support all the event types.
-                github_events = [x for x in github_events if x["id"] not in cached_ids and x["type"] == "PushEvent"]
-            else:
-                github_events = [x for x in github_events if x["type"] == "PushEvent"]
+            github_events = [x for x in github_events if x["type"] == "PushEvent"]
 
             APP_LOGGER.debug("Github Push Events number: %s", len(github_events))
 
@@ -85,10 +77,6 @@ class GithubSource(SourceBase):
                 except asyncio.TimeoutError:
                     APP_LOGGER.warning("Dropped event with id:%s url not valid", ge.id)
 
-            # Update the index_cache.
-            if self._index_cache:
-                await self._index_cache.update_index_cache([x["id"] for x in github_events])
-
             # Fetch the commits async.
             await asyncio.gather(*tasks)
 
@@ -101,7 +89,7 @@ class GithubSource(SourceBase):
             APP_LOGGER.debug("%s Github Commits send for processing", len(commit_event_list))
             return commit_event_list
 
-    async def fetch_events_scheduled(self, queue: ProcessingQueue):
+    async def fetch_events_scheduled(self, queue: RedisQueue):
         """
         Call the fetch_events method on a schedule.
 
