@@ -21,6 +21,7 @@ services:
 
   infobserve:
     build: .
+    command: bash -c 'while !</dev/tcp/postgres/5432; do sleep 1; done; python main.py'
     networks:
       - infobserve
     depends_on:
