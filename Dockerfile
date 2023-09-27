@@ -10,7 +10,7 @@ RUN apt-get update && \
 WORKDIR /app
 
 COPY pyproject.toml poetry.lock /app/
-RUN poetry config virtualenvs.in-project true && poetry install --no-dev
+RUN poetry config virtualenvs.in-project true && poetry install --only main
 
 FROM python:3.10-slim
 
