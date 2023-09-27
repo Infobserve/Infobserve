@@ -56,8 +56,9 @@ class RedisConnectionPool(metaclass=Singleton):
         """Initialize Redis connection pool.
         """
         try:
-            self.redis: aioredis.RedisPool = await aioredis.create_pool(
-                (CONFIG.REDIS_CONFIG["host"], CONFIG.REDIS_CONFIG["port"]))
+            self.redis: aioredis.RedisPool = await aioredis.from_url(
+                "{host}:{port}".format(host=CONFIG.REDIS_CONFIG["host"], port=CONFIG.REDIS_CONFIG["port"]),
+                encoding="utf-8", decode_responses=True)
         except KeyError:
             APP_LOGGER.error("Wrong configuration format for redis key in yaml")
             sys.exit(1)
