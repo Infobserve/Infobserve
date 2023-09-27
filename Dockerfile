@@ -10,7 +10,7 @@ RUN apt-get update && \
 WORKDIR /app
 
 COPY pyproject.toml /app/
-RUN poetry config virtualenvs.in-project true && poetry install --only-main
+RUN poetry config virtualenvs.in-project true && poetry install --no-dev
 
 FROM python:3.10-slim
 
