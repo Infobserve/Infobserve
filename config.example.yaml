@@ -13,11 +13,15 @@ yara_external_vars:
   localhost_ip: "127.0.0.1"
 
 postgres:
-  database: database
-  host: localhost
+  database: infobserve
+  host: postgres
   port: 5432
-  user: root
-  password: root
+  user: infobserve
+  password: infobserve
+
+redis:
+  host: redis
+  port: 6379
 
 sources: # only gist source valid for now
   gist:
